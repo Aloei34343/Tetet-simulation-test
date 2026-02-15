@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TETET Email Writing Simulation (Advanced Mode)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        .english-font {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* Flyer Styling - More Technical Look */
+        .flyer-paper {
+            background-color: white;
+            color: #333;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            border: 1px solid #e5e7eb;
+        }
+
+        .flyer-header {
+            background-color: #1e293b;
+            /* Slate 800 */
+            color: white;
+            transition: background-color 0.5s ease;
+        }
+
+        /* Animation for scenario change */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Tech Spec Grid */
+        .spec-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            border-top: 1px solid #eee;
+            padding-top: 0.5rem;
+        }
+
+        .spec-label {
+            font-weight: bold;
+            color: #64748b;
+        }
+
+        .spec-value {
+            font-family: 'Roboto', monospace;
+            color: #0f172a;
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Bar -->
+    <header class="bg-slate-900 text-white p-3 flex justify-between items-center shadow-md z-10">
+        <div class="flex items-center space-x-3">
+            <span class="bg-red-600 text-white font-bold px-2 py-1 rounded text-xs animate-pulse">HARD MODE</span>
+            <h1 class="text-lg font-bold hidden md:block">TETET Simulation: Real Engineering Scenarios</h1>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <!-- New AI Button -->
+            <button onclick="generateScenario()"
+                class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg flex items-center transition-all border border-indigo-400">
+                <span class="mr-2">⚡</span> Generate Advanced Scenario
+            </button>
+
+            <div class="flex items-center bg-gray-800 px-3 py-1 rounded">
+                <span class="text-xl mr-2">⏱️</span>
+                <span id="timer" class="font-mono text-xl font-bold text-red-400">15:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 flex flex-col md:flex-row h-full overflow-hidden">
+
+        <!-- LEFT PANEL: Source Material & Info -->
+        <div class="w-full md:w-1/2 bg-gray-200 p-4 flex flex-col border-r border-gray-300 overflow-y-auto custom-scroll relative"
+            id="left-panel">
+
+            <!-- Context Toggles -->
+            <div class="absolute top-4 right-4 z-20 flex flex-col space-y-2">
+                <button onclick="toggleInfo('situation')"
+                    class="bg-slate-800 hover:bg-black text-white px-4 py-2 rounded-lg shadow-lg text-sm font-bold flex items-center justify-between w-40 transition-all border-l-4 border-yellow-400">
+                    <span>See Situation</span>
+                    <span id="sit-dot" class="w-3 h-3 bg-green-500 rounded-full"></span>
+                </button>
+                <button onclick="toggleInfo('instruction')"
+                    class="bg-slate-800 hover:bg-black text-white px-4 py-2 rounded-lg shadow-lg text-sm font-bold flex items-center justify-between w-40 transition-all border-l-4 border-white">
+                    <span>See Instruction</span>
+                    <span id="ins-dot" class="w-3 h-3 bg-gray-500 rounded-full"></span>
+                </button>
+            </div>
+
+            <!-- Overlays (Situation & Instruction) -->
+            <div id="situation-box"
+                class="hidden bg-yellow-50 border-l-4 border-yellow-500 text-yellow-900 p-4 mb-4 rounded shadow-md mt-16 mx-4 fade-in">
+                <h3 class="font-bold text-lg mb-1">Situation (Context):</h3>
+                <p class="text-sm" id="situation-text">Loading...</p>
+            </div>
+
+            <div id="instruction-box"
+                class="hidden bg-blue-50 border-l-4 border-blue-600 text-blue-900 p-4 mb-4 rounded shadow-md mt-16 mx-4 fade-in">
+                <h3 class="font-bold text-lg mb-1">Your Task:</h3>
+                <p class="text-sm mb-2" id="instruction-header">Loading...</p>
+                <ul class="list-disc list-inside text-sm space-y-1" id="instruction-list">
+                    <li>Loading...</li>
+                </ul>
+            </div>
+
+            <!-- The Flyer/Datasheet (Source Material) -->
+            <div id="flyer-card"
+                class="flyer-paper w-full max-w-md mx-auto shadow-2xl rounded mt-4 flex-shrink-0 min-h-[600px] fade-in">
+                <!-- Header -->
+                <div class="flyer-header p-4 pb-6 text-center border-b-4 border-yellow-500" id="flyer-header-bg">
+                    <h2 class="text-2xl font-bold uppercase tracking-wider english-font" id="flyer-org">Loading...</h2>
+                    <p class="text-xs opacity-70 mt-1 uppercase tracking-widest" id="flyer-doc-type">TECHNICAL
+                        SPECIFICATION SHEET</p>
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 bg-white">
+                    <div class="flex justify-between items-start border-b border-gray-200 pb-4 mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800 english-font" id="flyer-main-title">LOADING...
+                            </h3>
+                            <p class="font-mono text-sm text-slate-500 mt-1" id="flyer-subtitle">Model: XYZ-123</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded font-mono">Rev. 2.4</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 text-gray-700 text-sm english-font">
+                        <p class="leading-relaxed text-xs text-gray-600" id="flyer-desc">
+                            System description loading...
+                        </p>
+
+                        <!-- Data Heavy Section -->
+                        <div class="bg-slate-50 p-4 rounded border border-slate-200">
+                            <h4 class="font-bold text-slate-700 text-xs uppercase mb-2 border-b border-slate-200 pb-1">
+                                Technical Specifications</h4>
+                            <div class="grid grid-cols-1 gap-1" id="flyer-details">
+                                <!-- Details injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Warnings/Highlights -->
+                        <div class="mt-4" id="flyer-highlights-box">
+                            <h4 class="font-bold text-red-700 text-xs uppercase mb-2">Critical Information / Errors:
+                            </h4>
+                            <div id="flyer-highlights-content"
+                                class="bg-red-50 p-3 rounded border border-red-100 text-xs font-mono text-red-800">
+                                <!-- Highlights injected by JS -->
+                            </div>
+                        </div>
+
+                        <div class="bg-yellow-50 p-3 rounded border border-yellow-200 text-xs text-yellow-900 mt-4">
+                            <strong>Remarks / Terms:</strong>
+                            <ul class="list-square list-inside mt-1 space-y-1" id="flyer-notes">
+                                <!-- Notes injected by JS -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="bg-gray-100 p-4 border-t border-gray-200 text-center mt-auto absolute bottom-0 w-full">
+                    <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Authorized Distributor Contact:
+                    </p>
+                    <h4 class="text-sm font-bold text-slate-800" id="flyer-contact-name">...</h4>
+                    <p class="text-xs text-blue-600 font-mono" id="flyer-contact-email">...</p>
+                </div>
+            </div>
+
+            <div class="h-10"></div> <!-- Spacer -->
+        </div>
+
+        <!-- RIGHT PANEL: Writing Interface -->
+        <div class="w-full md:w-1/2 bg-slate-100 p-6 flex flex-col h-full">
+            <div class="bg-white rounded shadow-md flex-1 flex flex-col border border-gray-300 overflow-hidden">
+                <!-- Email Header Fields -->
+                <div class="bg-gray-50 p-4 border-b border-gray-200 space-y-3">
+                    <h2 class="text-sm font-bold text-gray-500 mb-2 uppercase tracking-wide">Compose Email</h2>
+
+                    <div class="flex items-center">
+                        <label class="w-20 text-right mr-3 text-sm font-bold text-gray-600">To:</label>
+                        <input type="text" id="email-to"
+                            class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500 english-font"
+                            placeholder="">
+                    </div>
+
+                    <div class="flex items-center">
+                        <label class="w-20 text-right mr-3 text-sm font-bold text-gray-600">Cc:</label>
+                        <input type="text" id="email-cc"
+                            class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500 english-font">
+                    </div>
+
+                    <div class="flex items-center">
+                        <label class="w-20 text-right mr-3 text-sm font-bold text-gray-600">Subject:</label>
+                        <input type="text" id="email-subject"
+                            class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500 english-font"
+                            placeholder="">
+                    </div>
+                </div>
+
+                <!-- Text Area -->
+                <textarea id="email-body"
+                    class="flex-1 p-4 text-sm english-font leading-relaxed resize-none focus:outline-none"
+                    placeholder="Start typing your email here..."></textarea>
+
+                <!-- Footer Actions -->
+                <div class="bg-gray-50 p-3 border-t border-gray-200 flex justify-end">
+                    <button onclick="checkAnswer()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow transition-colors flex items-center text-sm">
+                        <span>Send / Submit</span>
+                        <span class="ml-2">✈️</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal for Feedback -->
+    <div id="feedback-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
+                <h2 class="text-lg font-bold">📝 Performance Review</h2>
+                <button onclick="closeModal()" class="text-white hover:text-gray-300 text-2xl">&times;</button>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scroll flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- User Answer -->
+                    <div>
+                        <h3 class="font-bold text-gray-700 mb-2 border-b pb-1 text-sm">Your Draft:</h3>
+                        <div class="bg-gray-100 p-4 rounded text-sm english-font whitespace-pre-wrap text-gray-600 border border-gray-200"
+                            id="user-response-display">
+                            (No input)
+                        </div>
+                    </div>
+
+                    <!-- Model Answer -->
+                    <div>
+                        <h3 class="font-bold text-green-700 mb-2 border-b pb-1 text-sm">Model Answer (Professional
+                            Standard):</h3>
+                        <div class="bg-green-50 p-4 rounded border border-green-200 text-sm english-font shadow-inner"
+                            id="model-answer-content">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scoring Checklist -->
+                <div class="mt-6 bg-yellow-50 p-4 rounded border border-yellow-200">
+                    <h3 class="font-bold text-yellow-800 mb-2 text-sm">✅ Evaluation Checklist:</h3>
+                    <ul class="space-y-2 text-sm text-gray-700" id="scoring-checklist">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-gray-100 p-4 text-right">
+                <button onclick="closeModal()"
+                    class="bg-slate-800 text-white px-6 py-2 rounded hover:bg-black transition text-sm">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Advanced Scenario Database ---
+        const scenarios = [
+            {
+                id: 1,
+                colorTheme: 'slate',
+                flyer: {
+                    org: "Siemens Industrial Automation",
+                    docType: "PRODUCT QUOTATION REQUEST REF",
+                    title: "SIMATIC S7-1500 PLC",
+                    subtitle: "Part No: 6ES7511-1AK02-0AB0",
+                    desc: "Advanced Controller for medium to large scale applications. High performance, integrated display, and PROFINET interface.",
+                    details: [
+                        { label: "Work Memory", value: "150 KB for program, 1 MB for data" },
+                        { label: "Processing Time", value: "60 ns for bit operations" },
+                        { label: "Interface", value: "PROFINET IRT with 2-port switch" },
+                        { label: "Ambient Temp", value: "-25 °C to +60 °C" },
+                        { label: "Supply Voltage", value: "24V DC (Reverse polarity protection)" }
+                    ],
+                    highlights: {
+                        "Stock Status": "Low Stock (Lead time may apply)",
+                        "EOL Notice": "Replaces older model S7-300 (Migration kit required)"
+                    },
+                    notes: ["Education discount available for universities.", "Warranty: 1 Year standard.", "Shipping: EXW Germany."],
+                    contact: { name: "Mr. Thomas Muller (Sales Manager)", email: "sales.th@siemens-dist.com" }
+                },
+                situation: "You are an <strong>Automation Engineer</strong> designing a new packaging line. You need to order PLCs but need to confirm technical compatibility and delivery time.",
+                instruction: {
+                    target: "Mr. Thomas Muller",
+                    points: [
+                        "Request a <strong>quotation for 5 units</strong> of the S7-1500 PLC.",
+                        "Ask if the <strong>migration kit from S7-300</strong> is included or sold separately.",
+                        "Enquire about the <strong>lead time</strong> (delivery date) as you need them within 4 weeks."
+                    ]
+                },
+                modelAnswer: {
+                    subject: "Quotation Request for SIMATIC S7-1500 PLC and Migration Kit",
+                    body: `Dear Mr. Muller,\n\nI am writing to request a quotation for 5 units of the SIMATIC S7-1500 PLC (Part No: 6ES7511-1AK02-0AB0) for our new packaging line project.\n\nRegarding the technical specifications, could you please clarify if the migration kit for the S7-300 system is included in the package, or if it needs to be purchased separately?\n\nAdditionally, we require these units urgently for installation next month. Could you please confirm if you can deliver them within 4 weeks?\n\nI look forward to receiving your quotation.\n\nSincerely,\n[Your Name]\nAutomation Engineer`
+                }
+            },
+            {
+                id: 2,
+                colorTheme: 'red',
+                flyer: {
+                    org: "Global Cooling Systems Ltd.",
+                    docType: "ERROR LOG / INCIDENT REPORT",
+                    title: "INDUSTRIAL CHILLER UNIT (ICU-500)",
+                    subtitle: "Serial No: CH-2024-889X",
+                    desc: "Status: CRITICAL FAILURE. System halted due to high-pressure limit breach. Manual reset required.",
+                    details: [
+                        { label: "Error Code", value: "E-401 (Compressor High Pressure)" },
+                        { label: "Recorded Pressure", value: "28.5 Bar (Limit: 25.0 Bar)" },
+                        { label: "Timestamp", value: "2026-05-12 03:45 AM" },
+                        { label: "Coolant Level", value: "Normal (95%)" },
+                        { label: "Last Service", value: "6 Months ago" }
+                    ],
+                    highlights: {
+                        "Troubleshooting": "Filter cleaning performed - Issue persists.",
+                        "Impact": "Production Line B stopped due to overheating."
+                    },
+                    notes: ["Service Contract: Gold Level (24/7 Support).", "Spare parts chargeable if outside warranty."],
+                    contact: { name: "Service Support Team", email: "support@globalcooling.com" }
+                },
+                situation: "You are the <strong>Maintenance Supervisor</strong>. The main chiller for Production Line B has failed, causing the line to stop. You have already tried basic troubleshooting.",
+                instruction: {
+                    target: "Service Support Team",
+                    points: [
+                        "Report the <strong>Error Code E-401</strong> and the troubleshooting steps you already took.",
+                        "Request an <strong>emergency technician dispatch</strong> immediately (refer to Gold Level contract).",
+                        "Ask for an <strong>estimated arrival time</strong>."
+                    ]
+                },
+                modelAnswer: {
+                    subject: "Urgent Service Request: Chiller ICU-500 Failure (Error E-401)",
+                    body: `Dear Service Support Team,\n\nI am writing to report a critical failure in our Industrial Chiller Unit (Serial No: CH-2024-889X).\n\nThe system has halted with Error Code E-401 (Compressor High Pressure). We have already performed filter cleaning as per the manual, but the issue persists, and Production Line B has stopped.\n\nUnder our Gold Level Service Contract, I would like to request an immediate emergency technician dispatch to our site.\n\nCould you please confirm the estimated arrival time of the technician?\n\nBest regards,\n[Your Name]\nMaintenance Supervisor`
+                }
+            },
+            {
+                id: 3,
+                colorTheme: 'orange',
+                flyer: {
+                    org: "Construction Material Supply Co.",
+                    docType: "INTERNAL MEMO / STOCK ALERT",
+                    title: "STRUCTURAL STEEL BEAMS (H-BEAM)",
+                    subtitle: "Grade: SS400 / ASTM A36",
+                    desc: "Notice of shipment delay from the supplier due to raw material shortage. Impact on Project Delta timeline.",
+                    details: [
+                        { label: "Order Ref", value: "PO-99821" },
+                        { label: "Item", value: "H-Beam 200x200mm" },
+                        { label: "Original Delivery", value: "May 20, 2026" },
+                        { label: "New Est. Delivery", value: "June 15, 2026" },
+                        { label: "Shortage Qty", value: "150 Tons" }
+                    ],
+                    highlights: {
+                        "Reason": "Global steel supply chain disruption.",
+                        "Alternative": "Grade SM490 available in stock (Higher cost)."
+                    },
+                    notes: ["Client penalty applies if delayed beyond June 1st.", "Approval needed for alternative grade."],
+                    contact: { name: "Mr. Somchai (Project Director)", email: "somchai.d@const-group.com" }
+                },
+                situation: "You are a <strong>Site Engineer</strong>. You received news that the steel beams for the main structure are delayed. This will cause a penalty from the client.",
+                instruction: {
+                    target: "Mr. Somchai (Project Director)",
+                    points: [
+                        "Inform him about the <strong>delay of H-Beam SS400</strong> shipment.",
+                        "Propose switching to <strong>Grade SM490</strong> to avoid the client penalty.",
+                        "Request <strong>approval for the additional cost</strong>."
+                    ]
+                },
+                modelAnswer: {
+                    subject: "Urgent: Proposal to switch steel grade for Project Delta due to delay",
+                    body: `Dear Mr. Somchai,\n\nI am writing to inform you about a shipment delay for the H-Beam SS400 (PO-99821). The new estimated delivery is June 15, which will cause us to miss the client's deadline of June 1st and incur penalties.\n\nTo avoid this delay, I propose switching to Grade SM490, which is currently available in stock. Although this grade has a higher cost, it will allow us to proceed immediately.\n\nCould you please review and approve the additional cost for this alternative material?\n\nSincerely,\n[Your Name]\nSite Engineer`
+                }
+            }
+        ];
+
+        let currentScenario = null;
+
+        // --- Render Function ---
+        function renderScenario(scenario) {
+            currentScenario = scenario;
+
+            // 1. Situation & Instruction
+            document.getElementById('situation-text').innerHTML = scenario.situation;
+            document.getElementById('instruction-header').innerHTML = `Write an email to <strong>${scenario.instruction.target}</strong> based on the document below.`;
+            document.getElementById('instruction-list').innerHTML = scenario.instruction.points.map(p => `<li>${p}</li>`).join('');
+
+            // 2. Flyer Header
+            document.getElementById('flyer-org').textContent = scenario.flyer.org;
+            document.getElementById('flyer-doc-type').textContent = scenario.flyer.docType;
+
+            // Theme colors
+            const themeMap = {
+                'slate': 'bg-slate-800 border-slate-600',
+                'red': 'bg-red-800 border-red-600',
+                'orange': 'bg-orange-700 border-orange-600'
+            };
+            document.getElementById('flyer-header-bg').className = `flyer-header p-4 pb-6 text-center border-b-4 ${scenario.colorTheme === 'slate' ? 'border-gray-500' : (scenario.colorTheme === 'red' ? 'border-red-500' : 'border-orange-500')} ${scenario.colorTheme === 'slate' ? 'bg-slate-800' : (scenario.colorTheme === 'red' ? 'bg-red-900' : 'bg-orange-800')}`;
+
+            // 3. Flyer Body
+            document.getElementById('flyer-main-title').textContent = scenario.flyer.title;
+            document.getElementById('flyer-subtitle').textContent = scenario.flyer.subtitle;
+            document.getElementById('flyer-desc').textContent = scenario.flyer.desc;
+
+            // Details Grid (Technical Spec)
+            document.getElementById('flyer-details').innerHTML = scenario.flyer.details.map(d =>
+                `<div class="spec-grid"><span class="spec-label">${d.label}:</span><span class="spec-value">${d.value}</span></div>`
+            ).join('');
+
+            // Highlights
+            let highlightHtml = '';
+            for (const [key, value] of Object.entries(scenario.flyer.highlights)) {
+                highlightHtml += `<div class="mb-1"><strong>${key}:</strong> ${value}</div>`;
+            }
+            document.getElementById('flyer-highlights-content').innerHTML = highlightHtml;
+
+            // Notes
+            document.getElementById('flyer-notes').innerHTML = scenario.flyer.notes.map(n => `<li>${n}</li>`).join('');
+
+            // Contact
+            document.getElementById('flyer-contact-name').textContent = scenario.flyer.contact.name;
+            document.getElementById('flyer-contact-email').textContent = scenario.flyer.contact.email;
+
+            // Trigger Animation
+            const flyer = document.getElementById('flyer-card');
+            flyer.classList.remove('fade-in');
+            void flyer.offsetWidth; // trigger reflow
+            flyer.classList.add('fade-in');
+
+            // Reset Input Fields
+            document.getElementById('email-to').value = "";
+            document.getElementById('email-cc').value = "";
+            document.getElementById('email-subject').value = "";
+            document.getElementById('email-body').value = "";
+            document.getElementById('timer').textContent = "15:00";
+            timeRemaining = 15 * 60;
+
+            // Auto open Instruction
+            toggleInfo('instruction');
+        }
+
+        function generateScenario() {
+            let nextIndex = Math.floor(Math.random() * scenarios.length);
+            if (currentScenario && scenarios.length > 1) {
+                while (scenarios[nextIndex].id === currentScenario.id) {
+                    nextIndex = Math.floor(Math.random() * scenarios.length);
+                }
+            }
+            renderScenario(scenarios[nextIndex]);
+        }
+
+        // --- Timer Logic ---
+        let timeRemaining = 15 * 60;
+        const timerElement = document.getElementById('timer');
+
+        setInterval(() => {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            if (timeRemaining > 0) timeRemaining--;
+        }, 1000);
+
+        // --- Toggle Logic ---
+        function toggleInfo(type) {
+            const sitBox = document.getElementById('situation-box');
+            const insBox = document.getElementById('instruction-box');
+            const sitDot = document.getElementById('sit-dot');
+            const insDot = document.getElementById('ins-dot');
+
+            if (type === 'situation') {
+                sitBox.classList.remove('hidden');
+                insBox.classList.add('hidden');
+                sitDot.classList.replace('bg-gray-500', 'bg-green-500');
+                insDot.classList.replace('bg-green-500', 'bg-gray-500');
+            } else {
+                insBox.classList.remove('hidden');
+                sitBox.classList.add('hidden');
+                insDot.classList.replace('bg-gray-500', 'bg-green-500');
+                sitDot.classList.replace('bg-green-500', 'bg-gray-500');
+            }
+        }
+
+        // --- Check Answer & Render Model Answer ---
+        function checkAnswer() {
+            const subject = document.getElementById('email-subject').value;
+            const body = document.getElementById('email-body').value;
+            const to = document.getElementById('email-to').value;
+
+            // Render User Input
+            const displayHtml = `
+                <p class="mb-2"><span class="font-bold">To:</span> ${to || '<span class="text-red-500">[Missing]</span>'}</p>
+                <p class="mb-2"><span class="font-bold">Subject:</span> ${subject || '<span class="text-red-500">[Missing]</span>'}</p>
+                <hr class="my-2 border-gray-300">
+                <div class="whitespace-pre-wrap">${body || '<span class="text-red-500">[No content written]</span>'}</div>
+            `;
+            document.getElementById('user-response-display').innerHTML = displayHtml;
+
+            // Render Model Answer based on current scenario
+            const modelHtml = `
+                <p class="mb-2"><span class="font-bold text-gray-600">To:</span> ${currentScenario.flyer.contact.email}</p>
+                <p class="mb-2"><span class="font-bold text-gray-600">Subject:</span> ${currentScenario.modelAnswer.subject}</p>
+                <hr class="my-2 border-green-200">
+                <p class="whitespace-pre-wrap">${currentScenario.modelAnswer.body}</p>
+            `;
+            document.getElementById('model-answer-content').innerHTML = modelHtml;
+
+            // Render Checklist based on instruction points
+            const checklistHtml = `
+                <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> <strong>Email To:</strong> Correct recipient? (${currentScenario.flyer.contact.email})</li>
+                <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> <strong>Subject Line:</strong> Specific? (Mention ID/Code)</li>
+                <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> <strong>Points Covered:</strong> ${currentScenario.instruction.points.map(p => p.replace(/<[^>]*>/g, '').split(' ').slice(0, 3).join(' ')).join(', ')}...</li>
+            `;
+            document.getElementById('scoring-checklist').innerHTML = checklistHtml;
+
+            document.getElementById('feedback-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+        }
+
+        // Init
+        generateScenario();
+
+    </script>
+</body>
+
+</html>

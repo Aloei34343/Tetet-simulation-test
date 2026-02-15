@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TETET Report Writing Simulator with Gemini AI</title>
+    <style>
+        :root {
+            --header-bg: #000000;
+            --header-text: #ffffff;
+            --btn-yellow: #ffd700;
+            --btn-ai: #8e24aa;
+            /* Purple for AI */
+            --btn-ai-hover: #ba68c8;
+            --phrase-bg: #fffde7;
+            --report-bg: #e8f5e9;
+            --border-green: #4caf50;
+            --footer-bg: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 800px;
+        }
+
+        /* Header Section */
+        .header {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .scenario-counter {
+            font-size: 14px;
+            background-color: #333;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: normal;
+            color: #ddd;
+            border: 1px solid #555;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .yellow-btn {
+            background-color: var(--btn-yellow);
+            border: none;
+            padding: 5px 15px;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: right;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 5px;
+            color: black;
+        }
+
+        .yellow-btn::after {
+            content: '';
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: black;
+            border-radius: 50%;
+        }
+
+        .yellow-btn.white-dot::after {
+            background: white;
+        }
+
+        /* AI Button Style */
+        .ai-btn {
+            background: linear-gradient(45deg, #7b1fa2, #ba68c8);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .ai-btn:hover {
+            transform: scale(1.05);
+            background: linear-gradient(45deg, #ba68c8, #7b1fa2);
+        }
+
+        .ai-btn span {
+            font-size: 14px;
+        }
+
+        /* Key Button */
+        .key-btn {
+            background: transparent;
+            color: #ccc;
+            border: 1px solid #555;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        .key-btn:hover {
+            color: white;
+            border-color: white;
+        }
+
+        /* Phrase Bank Section */
+        .phrase-bank {
+            background-color: var(--phrase-bg);
+            padding: 15px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .phrase-item {
+            background: white;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 13px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .phrase-item:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-1px);
+        }
+
+        .phrase-item.selected {
+            background-color: #bbdefb;
+            border-color: #2196f3;
+            font-weight: bold;
+        }
+
+        .phrase-item.used {
+            opacity: 0.5;
+            background-color: #eee;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
+        /* Report Body Section */
+        .report-body {
+            background-color: var(--report-bg);
+            border: 2px solid var(--border-green);
+            margin: 15px;
+            padding: 25px;
+            flex-grow: 1;
+            position: relative;
+            font-size: 14px;
+            line-height: 1.8;
+            overflow-y: auto;
+        }
+
+        .report-header-text {
+            margin-bottom: 20px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .report-section-title {
+            text-align: center;
+            font-weight: bold;
+            margin: 15px 0 5px 0;
+            text-decoration: underline;
+        }
+
+        .blank-space {
+            display: inline-block;
+            width: 100%;
+            max-width: 350px;
+            border-bottom: 2px solid #333;
+            background-color: rgba(255, 255, 255, 0.6);
+            min-height: 24px;
+            vertical-align: bottom;
+            cursor: pointer;
+            padding: 0 5px;
+            color: #000;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .blank-space:hover {
+            background-color: #e3f2fd;
+        }
+
+        .blank-space.filled {
+            border-bottom: 2px solid #2196f3;
+            color: #1565c0;
+        }
+
+        .blank-space.correct {
+            border-bottom: 2px solid #4caf50;
+            color: #2e7d32;
+            background-color: #c8e6c9;
+        }
+
+        .blank-space.incorrect {
+            border-bottom: 2px solid #f44336;
+            color: #c62828;
+            background-color: #ffcdd2;
+        }
+
+        .blank-number {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--footer-bg);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #ccc;
+        }
+
+        .timer {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-buttons button {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .check-btn {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .next-btn {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        /* Overlay for feedback */
+        .feedback-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 80%;
+            max-width: 600px;
+            z-index: 100;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .feedback-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        .feedback-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .explanation-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .correct-text {
+            color: green;
+            font-weight: bold;
+        }
+
+        .logic-text {
+            font-size: 0.9em;
+            color: #555;
+            font-style: italic;
+        }
+
+        /* Loading Spinner */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--btn-ai);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .ai-text-box {
+            background-color: #f3e5f5;
+            border-left: 4px solid #8e24aa;
+            padding: 10px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading Indicator -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText" style="font-weight: bold; color: #555;">Thinking...</div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>
+                Report Writing
+                <span id="scenario-counter" class="scenario-counter">1 / 6</span>
+            </h1>
+            <div class="action-buttons">
+                <!-- New AI Button -->
+                <button class="ai-btn" onclick="generateAIScenario()">
+                    <span>✨</span> Generate AI Scenario
+                </button>
+                <div style="display:flex; flex-direction:column; gap:5px; align-items:flex-end;">
+                    <button class="yellow-btn">See Situation</button>
+                    <button class="yellow-btn white-dot">See Instructions</button>
+                    <button class="key-btn" onclick="resetApiKey()">🔑 Reset Key</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scenario Content -->
+        <div id="scenario-content">
+            <!-- Content will be injected by JS -->
+        </div>
+
+        <div class="footer">
+            <div class="timer">
+                ⏰ Time left: <span id="time-display">15:00</span> min.
+            </div>
+            <div class="nav-buttons">
+                <button class="check-btn" onclick="checkAnswers()">Check Answer</button>
+                <button class="next-btn" onclick="prevScenario()">Previous</button>
+                <button class="next-btn" onclick="nextScenario()">Next Scenario</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="feedback-overlay" id="overlay"></div>
+    <div class="feedback-modal" id="modal">
+        <div class="feedback-title">
+            Result Analysis
+            <button class="ai-btn" style="font-size: 10px; padding: 5px 10px;" onclick="explainWithAI()">
+                <span>✨</span> Ask AI Tutor
+            </button>
+        </div>
+        <div id="feedback-content"></div>
+        <!-- AI Explanation Container -->
+        <div id="ai-explanation-container"></div>
+
+        <div style="text-align: right; margin-top: 15px;">
+            <button onclick="closeModal()" class="next-btn">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Gemini API Key Management ---
+
+        function getApiKey() {
+            let key = localStorage.getItem("gemini_api_key");
+            if (!key || key === "null" || key === "") {
+                key = prompt("Please enter your Google Gemini API Key:\n(Get one for free at aistudio.google.com)\n\nNote: Your key is saved locally in your browser, not sent to any server other than Google.");
+                if (key) {
+                    localStorage.setItem("gemini_api_key", key);
+                }
+            }
+            return key;
+        }
+
+        function resetApiKey() {
+            localStorage.removeItem("gemini_api_key");
+            alert("API Key has been cleared from this browser.");
+        }
+
+        // --- Gemini API Call ---
+
+        async function callGemini(prompt, isJson = false) {
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                alert("API Key is required to use AI features.");
+                return null;
+            }
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            let generationConfig = {};
+            if (isJson) {
+                // Simplified JSON config to avoid strict schema constraints that might confuse the model
+                generationConfig = {
+                    responseMimeType: "application/json"
+                };
+            }
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: generationConfig
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    if (response.status === 400 || response.status === 403) {
+                        alert("Invalid API Key. Please check your key or try resetting it using the 'Reset Key' button.");
+                        localStorage.removeItem("gemini_api_key");
+                    }
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // --- Log Token Usage ---
+                if (data.usageMetadata) {
+                    console.group("Gemini API Token Usage");
+                    console.log(`Input Tokens: ${data.usageMetadata.promptTokenCount}`);
+                    console.log(`Output Tokens: ${data.usageMetadata.candidatesTokenCount}`);
+                    console.log(`Total Tokens: ${data.usageMetadata.totalTokenCount}`);
+                    console.groupEnd();
+                }
+                // -----------------------
+
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                return text;
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                // alert("Error connecting to AI. Please try again.");
+                return null;
+            }
+        }
+
+        // --- AI Logic Functions ---
+
+        async function generateAIScenario() {
+            showLoading("Generating new engineering scenario...");
+
+            // Strict, simplified prompt to prevent hallucinations and length errors
+            const prompt = `
+            Generate a JSON object for an engineering report writing exam question.
+            
+            Strictly follow this JSON structure:
+            {
+                "type": "Short Category (e.g. Robotics) - Max 5 words",
+                "phrases": [
+                    {"id": "p1", "text": "Short answer phrase 1"},
+                    {"id": "p2", "text": "Short answer phrase 2"},
+                    {"id": "p3", "text": "Short answer phrase 3"},
+                    {"id": "p4", "text": "Short answer phrase 4"}
+                ],
+                "header": "HTML for header (To, From, Subject, Date). IMPORTANT: Must contain <span class='blank-space' data-ans='pX' onclick='handleBlankClick(this)'></span>.",
+                "body": "HTML for body. Must contain 3 blank spans (<span class='blank-space' data-ans='pX' onclick='handleBlankClick(this)'></span>) prefixed by <span class='blank-number'>X)</span>.",
+                "explanations": {
+                    "p1": "Very short reason (10 words max)",
+                    "p2": "Very short reason (10 words max)",
+                    "p3": "Very short reason (10 words max)",
+                    "p4": "Very short reason (10 words max)"
+                }
+            }
+
+            CONSTRAINTS:
+            1. Output ONLY valid JSON.
+            2. Keep all text VERY SHORT to prevent errors.
+            3. Do NOT include any markdown or extra text.
+            4. Distribute p1, p2, p3, p4 answers correctly among the 4 blanks.
+        `;
+
+            let jsonString = await callGemini(prompt, true);
+
+            hideLoading();
+
+            if (jsonString) {
+                try {
+                    // ROBUST EXTRACTION: Find the first { and last }
+                    // This ignores any Markdown or text before/after the JSON
+                    const firstBrace = jsonString.indexOf('{');
+                    const lastBrace = jsonString.lastIndexOf('}');
+
+                    if (firstBrace !== -1 && lastBrace !== -1) {
+                        jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+                    } else {
+                        throw new Error("No JSON object found in response");
+                    }
+
+                    const newScenario = JSON.parse(jsonString);
+
+                    // Validation Guard: Check if phrases exist and is an array
+                    if (!newScenario.phrases || !Array.isArray(newScenario.phrases)) {
+                        throw new Error("Invalid structure: missing 'phrases' array");
+                    }
+
+                    // Sanitize IDs just in case
+                    newScenario.phrases.forEach((p, i) => p.id = `p${i + 1}`);
+
+                    // Final validation check
+                    if (newScenario.body && newScenario.header) {
+                        scenarios.push(newScenario);
+                        currentScenarioIndex = scenarios.length - 1;
+                        loadScenario(currentScenarioIndex);
+                        alert(`New ${newScenario.type} scenario generated!`);
+                    }
+                } catch (e) {
+                    console.error("JSON Parse Error", e);
+                    console.log("Raw Response was:", jsonString);
+                    alert("AI generation format error. Please try again. (Check console for details)");
+                }
+            }
+        }
+
+        async function explainWithAI() {
+            const scenario = scenarios[currentScenarioIndex];
+            const overlay = document.getElementById('loadingOverlay');
+            // Don't close modal, just show loading on top or inside
+            const btn = document.querySelector('.feedback-title .ai-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "Thinking...";
+            btn.disabled = true;
+
+            const prompt = `
+            Act as a kind English tutor for Thai engineering students.
+            Explain the grammar and logic of this specific report in Thai.
+            
+            Report Type: ${scenario.type}
+            Correct Phrases:
+            1. ${scenario.phrases[0].text}
+            2. ${scenario.phrases[1].text}
+            3. ${scenario.phrases[2].text}
+            4. ${scenario.phrases[3].text}
+            
+            Explain why these phrases fit in their specific blanks (Subject line, Purpose 'To...', Time clause, Passive voice etc).
+            Keep it encouraging and helpful. Maximum 150 words.
+        `;
+
+            const explanation = await callGemini(prompt);
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+            if (explanation) {
+                const container = document.getElementById('ai-explanation-container');
+                container.innerHTML = `
+                <div class="ai-text-box">
+                    <strong>✨ AI Tutor Explanation:</strong><br>
+                    ${explanation.replace(/\n/g, '<br>')}
+                </div>
+            `;
+                container.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingText').innerText = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // --- Data: Engineering Scenarios (Existing) ---
+        const scenarios = [
+            {
+                type: "Structural / Civil",
+                phrases: [
+                    { id: "p1", text: "Investigation of cracked concrete beams" },
+                    { id: "p2", text: "Due to the heavy rainfall last week" },
+                    { id: "p3", text: "The objective of this report" },
+                    { id: "p4", text: "To determine the structural integrity" }
+                ],
+                header: `
+                <div>To: Chief Civil Engineer</div>
+                <div>From: Site Inspector</div>
+                <div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>
+                <div>Date: May 12, 2026</div>
+            `,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p>
+                    <span class="blank-number">2)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span> is to present the findings from the visual inspection of Sector B.
+                </p>
+                <p>
+                    <span class="blank-number">3)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span>, water accumulation was observed at the foundation base, causing potential erosion.
+                </p>
+                <p>
+                    <span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, we performed a non-destructive rebound hammer test on the affected pillars.
+                </p>
+            `,
+                explanations: {
+                    p1: "Subject must be a Noun Phrase describing the topic. 'Investigation...' fits perfectly.",
+                    p3: "Followed by 'is to present...', so the subject must be 'The objective/purpose of this report'.",
+                    p2: "Followed by a comma and a cause/time context. 'Due to...' explains the background context.",
+                    p4: "Followed by ', we performed...'. This structure 'To + Verb' explains the purpose of the action."
+                }
+            },
+            {
+                type: "Industrial / Production",
+                phrases: [
+                    { id: "p1", text: "To increase the production line efficiency" },
+                    { id: "p2", text: "Monthly Production Summary: Line A" },
+                    { id: "p3", text: "From the data collected" },
+                    { id: "p4", text: "On August 1st, 2026" }
+                ],
+                header: `
+                <div>To: Plant Manager</div>
+                <div>From: Production Supervisor</div>
+                <div>Subject: <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span></div>
+                <div>Date: August 5, 2026</div>
+            `,
+                body: `
+                <div class="report-section-title">Background</div>
+                <p>
+                    <span class="blank-number">2)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, we implemented the new automated sorting system to reduce manual labor.
+                </p>
+                <div class="report-section-title">Result</div>
+                <p>
+                    <span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, it is apparent that the defect rate has dropped by 15% compared to the previous month.
+                </p>
+                <div class="report-section-title">Conclusion</div>
+                <p>
+                    <span class="blank-number">4)</span> <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span>, we recommend extending this automation system to Line B and C.
+                </p>
+            `,
+                explanations: {
+                    p2: "Subject Header. Needs to be a Title/Noun Phrase.",
+                    p4: "Time expression starting a sentence, followed by a comma.",
+                    p3: "Introductory phrase for results. 'From the data...' leads into 'it is apparent that...'.",
+                    p1: "Purpose clause 'To + Verb'. explains WHY we recommend the action."
+                }
+            },
+            {
+                type: "Safety / Environmental",
+                phrases: [
+                    { id: "p1", text: "The purpose of this memo" },
+                    { id: "p2", text: "Potential chemical leakage in Storage Area" },
+                    { id: "p3", text: "As requested by the Environmental Agency" },
+                    { id: "p4", text: "To prevent contamination of groundwater" }
+                ],
+                header: `
+                <div>To: All Staff</div>
+                <div>From: Safety Officer</div>
+                <div>Subject: <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span></div>
+                <div>Date: November 10, 2026</div>
+            `,
+                body: `
+                <p>
+                    <span class="blank-number">2)</span> <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span> is to inform all personnel about the new emergency protocols.
+                </p>
+                <p>
+                    <span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, we conducted a thorough inspection of all chemical tanks this morning.
+                </p>
+                <p>
+                    <span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, immediate repair of Valve #4 is required, and the area is restricted until further notice.
+                </p>
+            `,
+                explanations: {
+                    p2: "Subject line. Must be the main topic (Noun Phrase).",
+                    p1: "Matches with '...is to inform'. Standard memo introduction.",
+                    p3: "Passive voice background phrase 'As requested by...', explaining the trigger for the inspection.",
+                    p4: "Purpose phrase 'To + Verb', explaining the reason for the repair."
+                }
+            },
+            {
+                type: "Mechanical / HVAC",
+                phrases: [
+                    { id: "p1", text: "Failure analysis of Cooling Pump B" },
+                    { id: "p2", text: "To restore the cooling capacity" },
+                    { id: "p3", text: "The aim of this incident report" },
+                    { id: "p4", text: "Due to a bearing seizure" }
+                ],
+                header: `
+                <div>To: Facility Manager</div>
+                <div>From: Senior Mechanical Engineer</div>
+                <div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>
+                <div>Date: February 20, 2026</div>
+            `,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p>
+                    <span class="blank-number">2)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span> is to identify the root cause of the sudden shutdown in Zone 4.
+                </p>
+                <p>
+                    <span class="blank-number">3)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, the pump motor was overloaded, triggering the thermal protection relay at 14:30 yesterday.
+                </p>
+                <p>
+                    <span class="blank-number">4)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span>, we have replaced the bearing assembly and performed a vibration test.
+                </p>
+            `,
+                explanations: {
+                    p1: "Subject must be a Noun Phrase. 'Failure analysis...' is the topic.",
+                    p3: "Matches with 'is to identify...'. Similar to 'The purpose of...', 'The aim of...' is standard.",
+                    p4: "Explains the cause (Cause-Effect relationship). 'Due to...' fits perfectly before the result description.",
+                    p2: "Starts with 'To + Verb' indicating purpose. We replaced the part TO restore the capacity."
+                }
+            },
+            {
+                type: "IT / Network Engineering",
+                phrases: [
+                    { id: "p1", text: "As a result of the firmware bug" },
+                    { id: "p2", text: "Report on the primary server outage" },
+                    { id: "p3", text: "To upgrade the firewall security" },
+                    { id: "p4", text: "The purpose of this notification" }
+                ],
+                header: `
+                <div>To: CTO</div>
+                <div>From: Network Administrator</div>
+                <div>Subject: <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span></div>
+                <div>Date: March 15, 2026</div>
+            `,
+                body: `
+                <div class="report-section-title">Overview</div>
+                <p>
+                    <span class="blank-number">2)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span> is to detail the events leading to the service interruption on Monday.
+                </p>
+                <p>
+                    <span class="blank-number">3)</span> <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span>, the main router failed to process incoming packets, causing a 10-minute downtime.
+                </p>
+                <div class="report-section-title">Action Plan</div>
+                <p>
+                    <span class="blank-number">4)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, we will apply the latest patch (v2.4.1) during the maintenance window this Sunday.
+                </p>
+            `,
+                explanations: {
+                    p2: "Subject Header. 'Report on...' is a standard way to title an incident report.",
+                    p4: "Followed by 'is to detail...'. Needs 'The purpose...' phrase.",
+                    p1: "Cause phrase. 'As a result of...' introduces the cause of the failure mentioned next.",
+                    p3: "Purpose phrase 'To + Verb'. Explains why we are applying the patch."
+                }
+            },
+            {
+                type: "Project Management",
+                phrases: [
+                    { id: "p1", text: "Delay in steel reinforcement delivery" },
+                    { id: "p2", text: "The intention of this notice" },
+                    { id: "p3", text: "To mitigate the schedule impact" },
+                    { id: "p4", text: "Due to the supplier's logistical error" }
+                ],
+                header: `
+                <div>To: Project Director</div>
+                <div>From: Construction Manager</div>
+                <div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>
+                <div>Date: June 30, 2026</div>
+            `,
+                body: `
+                <p>
+                    <span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to alert the stakeholders about a potential slip in the critical path timeline.
+                </p>
+                <p>
+                    <span class="blank-number">3)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, the shipment of 12mm rebar expected yesterday has not arrived.
+                </p>
+                <p>
+                    <span class="blank-number">4)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, we have arranged an emergency procurement from a local vendor at a 5% premium cost.
+                </p>
+            `,
+                explanations: {
+                    p1: "Subject Line. Noun phrase describing the issue 'Delay in...'.",
+                    p2: "Followed by 'is to alert...'. 'The intention...' works synonymously with 'The purpose...'.",
+                    p4: "Cause phrase. 'Due to...' explains the reason for the delay.",
+                    p3: "Purpose phrase 'To + Verb'. Explains the reason for the emergency procurement."
+                }
+            },
+            {
+                type: "Robotics Lab",
+                phrases: [
+                    { id: "p1", text: "Test results of the RV-200 Robot Arm" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "On January 25, 2026" },
+                    { id: "p4", text: "To verify the positioning accuracy" }
+                ],
+                header: `
+                <div>To: Somchai Meechai, Project Manager</div>
+                <div>From: Automation Engineer</div>
+                <div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>
+                <div>Date: January 30, 2026</div>
+            `,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p>
+                    <span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to present the performance data of the new robot arm imported from Japan.
+                </p>
+                <p>
+                    <span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, the supplier delivered the prototype unit to our laboratory for initial inspection.
+                </p>
+                <p>
+                    <span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, we programmed the robot to move repeatedly between point A and point B for 500 cycles.
+                </p>
+            `,
+                explanations: {
+                    p1: "Subject line. Must be a Noun Phrase title. 'Test results of...' fits a technical report.",
+                    p2: "Introduction starter. Standard phrase followed by 'is to present...'.",
+                    p3: "Time reference. Used to introduce when the process began.",
+                    p4: "Purpose clause 'To + Verb'. Explains WHY the test was performed."
+                }
+            },
+            {
+                type: "Conveyor Belt",
+                phrases: [
+                    { id: "p1", text: "Endurance test report on the conveyor belt" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "On March 3, 2026" },
+                    { id: "p4", text: "To evaluate continuous operation performance" }
+                ],
+                header: `
+                <div>To: Maintenance Manager</div>
+                <div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>
+            `,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p>
+                    <span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to summarize the inspection results of the conveyor belt system.
+                </p>
+                <p>
+                    <span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, the system was operated continuously for 48 hours under full load.
+                </p>
+                <p>
+                    <span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, temperature rise and belt tension were monitored.
+                </p>
+            `,
+                explanations: {
+                    p1: "Subject title. Describes the type of report (Endurance test).",
+                    p2: "Standard introduction opening for technical memos.",
+                    p3: "Transition phrase indicating the specific date of the test.",
+                    p4: "Infinitive phrase explaining the goal of the monitoring."
+                }
+            },
+            {
+                type: "Air Compressor",
+                phrases: [
+                    { id: "p1", text: "Test results of the industrial air compressor" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "On April 10, 2026" },
+                    { id: "p4", text: "To assess pressure stability" }
+                ],
+                header: `
+                <div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>
+            `,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p>
+                    <span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to present the performance test results of the air compressor.
+                </p>
+                <p>
+                    <span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, the unit was tested at different pressure levels.
+                </p>
+                <p>
+                    <span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, fluctuations in output pressure were recorded.
+                </p>
+            `,
+                explanations: {
+                    p1: "Technical subject line using a noun phrase.",
+                    p2: "Formal introduction to a technical report.",
+                    p3: "Contextual time phrase introducing the method.",
+                    p4: "Purpose phrase clarifying the reason for recording data."
+                }
+            },
+            {
+                type: "PLC Control",
+                phrases: [
+                    { id: "p1", text: "Evaluation report on PLC control system" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "On May 5, 2026" },
+                    { id: "p4", text: "To verify system response time" }
+                ],
+                header: `
+                <div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>
+            `,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p>
+                    <span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to describe the evaluation of the PLC control system.
+                </p>
+                <p>
+                    <span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, the system was installed in the test environment.
+                </p>
+                <p>
+                    <span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, multiple input signals were simulated.
+                </p>
+            `,
+                explanations: {
+                    p1: "Standard report title format.",
+                    p2: "Objective statement starter.",
+                    p3: "Time marker for the sequence of the installation.",
+                    p4: "Goal-oriented phrase explaining the simulation's intent."
+                }
+            },
+
+            {
+                type: "Machine Explosion",
+                phrases: [
+                    { id: "p1", text: "Incident report on hydraulic press failure" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "At approximately 10:15 a.m." },
+                    { id: "p4", text: "Due to excessive internal pressure" }
+                ],
+                header: `<div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>`,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p><span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to describe the incident involving the hydraulic press in Line B.</p>
+                <p><span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, the machine suddenly exploded during normal operation.</p>
+                <p><span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, several internal components were damaged and production was halted.</p>
+            `,
+                explanations: {
+                    p1: "Subject line. Brief noun phrase describing the incident.",
+                    p2: "Standard introductory phrase for an incident report.",
+                    p3: "Time reference for when the incident occurred.",
+                    p4: "Cause phrase explains why the explosion happened."
+                }
+            },
+            {
+                type: "Chemical Leakage",
+                phrases: [
+                    { id: "p1", text: "Accident report on chemical leakage" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "At 8:40 p.m." },
+                    { id: "p4", text: "Resulting in temporary evacuation of staff" }
+                ],
+                header: `<div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>`,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p><span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to report the chemical leakage incident in the storage area.</p>
+                <p><span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, a chemical container was found leaking near the ventilation system.</p>
+                <p><span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, no serious injuries were reported.</p>
+            `,
+                explanations: {
+                    p1: "Noun phrase title for the accident report.",
+                    p2: "Standard report opening phrase.",
+                    p3: "Specific time indicator.",
+                    p4: "Resulting clause explains the consequence of the incident."
+                }
+            },
+            {
+                type: "Power Outage",
+                phrases: [
+                    { id: "p1", text: "Incident report on facility-wide power outage" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "Immediately after the outage" },
+                    { id: "p4", text: "Caused by a malfunctioning circuit breaker" }
+                ],
+                header: `<div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>`,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p><span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to summarize the power outage incident at the main facility.</p>
+                <p><span class="blank-number">3)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span>, all production equipment was automatically shut down.</p>
+                <p><span class="blank-number">4)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, emergency power systems were activated.</p>
+            `,
+                explanations: {
+                    p1: "Title describing the scope and type of incident.",
+                    p2: "Formal start of a summary report.",
+                    p4: "Cause phrase explains the root of the problem.",
+                    p3: "Time relationship phrase indicating the sequence of events."
+                }
+            },
+            {
+                type: "Electrical Progress",
+                phrases: [
+                    { id: "p1", text: "Progress report on electrical system installation" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "We have completed the main wiring work" },
+                    { id: "p4", text: "We will proceed with system testing" }
+                ],
+                header: `<div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>`,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p><span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to provide an update on the electrical installation project.</p>
+                <p><span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span> in Building A and B.</p>
+                <p><span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span> next week as scheduled.</p>
+            `,
+                explanations: {
+                    p1: "Status/Progress report title.",
+                    p2: "Objective statement for a progress update.",
+                    p3: "Statement of completed activity (Past/Present Perfect).",
+                    p4: "Future action plan (Future tense)."
+                }
+            },
+            {
+                type: "Automation Upgrade",
+                phrases: [
+                    { id: "p1", text: "Progress report on automation system upgrade" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "The project is slightly behind schedule" },
+                    { id: "p4", text: "We are currently configuring the control software" }
+                ],
+                header: `<div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>`,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p><span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to inform management of the current project status.</p>
+                <p><span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span> due to delayed component delivery.</p>
+                <p><span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span> to ensure compatibility with existing equipment.</p>
+            `,
+                explanations: {
+                    p1: "Specific project status title.",
+                    p2: "Standard professional opening for status reports.",
+                    p3: "Status summary statement regarding the timeline.",
+                    p4: "Action statement describing current ongoing activities."
+                }
+            },
+            {
+                type: "Annual Maintenance",
+                phrases: [
+                    { id: "p1", text: "Maintenance inspection report of cooling system" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "Several components were found worn out" },
+                    { id: "p4", text: "Recommend replacing the damaged parts" }
+                ],
+                header: `<div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>`,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p><span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to summarize the results of the annual maintenance inspection.</p>
+                <p><span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span> during the site visit.</p>
+                <p><span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span> to prevent future system failure.</p>
+            `,
+                explanations: {
+                    p1: "Clear maintenance report subject.",
+                    p2: "Opening phrase for inspection summaries.",
+                    p3: "Finding statement in passive voice.",
+                    p4: "Recommendation verb phrase."
+                }
+            },
+            {
+                type: "Site Inspection",
+                phrases: [
+                    { id: "p1", text: "Inspection report on conveyor motor" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "Corrosion was observed on the motor housing" },
+                    { id: "p4", text: "Suggest repairing the affected areas" }
+                ],
+                header: `<div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>`,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p><span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to report the findings from the site inspection.</p>
+                <p><span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span> during routine operation.</p>
+                <p><span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span> before resuming full operation.</p>
+            `,
+                explanations: {
+                    p1: "Direct subject line for technical findings.",
+                    p2: "Formal introduction to inspection findings.",
+                    p3: "Observation statement describing a technical issue.",
+                    p4: "Action suggestion to address the identified problem."
+                }
+            },
+            {
+                type: "Machine Replacement",
+                phrases: [
+                    { id: "p1", text: "Feasibility report on machine replacement options" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "Although the initial cost is higher" },
+                    { id: "p4", text: "Purchasing a new machine is more cost-effective" }
+                ],
+                header: `<div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>`,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p><span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to evaluate two alternative solutions.</p>
+                <p><span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, long-term maintenance costs are significantly lower.</p>
+                <p><span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span> than repairing the existing equipment.</p>
+            `,
+                explanations: {
+                    p1: "Formal feasibility study title.",
+                    p2: "Opening phrase for comparative evaluation.",
+                    p3: "Concession clause (Although...) to balance costs vs benefits.",
+                    p4: "Conclusion statement stating the final recommendation."
+                }
+            },
+            {
+                type: "Energy Upgrade",
+                phrases: [
+                    { id: "p1", text: "Feasibility report on energy system upgrade" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "While Option A is less expensive" },
+                    { id: "p4", text: "Option B is more efficient in the long run" }
+                ],
+                header: `<div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>`,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p><span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to compare two proposed energy systems.</p>
+                <p><span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, its performance does not meet future demand.</p>
+                <p><span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span> and environmentally sustainable.</p>
+            `,
+                explanations: {
+                    p1: "Specific feasibility subject for energy systems.",
+                    p2: "Standard introduction for comparative analysis.",
+                    p3: "Contrast clause (While...) comparing two options.",
+                    p4: "Value proposition statement for the better option."
+                }
+            },
+            {
+                type: "Maintenance Strategy",
+                phrases: [
+                    { id: "p1", text: "Feasibility report on maintenance strategy" },
+                    { id: "p2", text: "The purpose of this report" },
+                    { id: "p3", text: "Preventive maintenance is more effective than corrective maintenance" },
+                    { id: "p4", text: "However, implementation will require additional training" }
+                ],
+                header: `<div>Subject: <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span></div>`,
+                body: `
+                <div class="report-section-title">Introduction</div>
+                <p><span class="blank-number">2)</span> <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span> is to assess two maintenance approaches.</p>
+                <p><span class="blank-number">3)</span> <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span> in reducing unexpected equipment failure.</p>
+                <p><span class="blank-number">4)</span> <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span> for technical staff.</p>
+            `,
+                explanations: {
+                    p1: "Strategic report title.",
+                    p2: "Opening phrase for strategic assessment.",
+                    p3: "Core argument/Finding statement.",
+                    p4: "Counterargument or constraint phrase (However...)."
+                }
+            }
+        ];
+
+        let currentScenarioIndex = 0;
+        let selectedPhraseId = null;
+        let selectedPhraseText = null;
+        let timeLeft = 15 * 60; // 15 minutes in seconds
+
+        // --- Core Functions ---
+
+        function loadScenario(index) {
+            const scenario = scenarios[index];
+            const contentDiv = document.getElementById('scenario-content');
+
+            // Update Counter
+            document.getElementById('scenario-counter').innerText = `Scenario ${index + 1} / ${scenarios.length}`;
+
+            // Build Phrase Bank HTML
+            let phrasesHtml = '<div class="phrase-bank">';
+            // Shuffle phrases for difficulty (optional, keeping order for now for simplicity)
+            scenario.phrases.forEach(p => {
+                phrasesHtml += `<div class="phrase-item" id="btn-${p.id}" onclick="selectPhrase('${p.id}', '${p.text.replace(/'/g, "\\'")}')">${p.text}</div>`;
+            });
+            phrasesHtml += '</div>';
+
+            // Build Report HTML
+            let reportHtml = `
+            <div class="report-body">
+                <div class="report-header-text">
+                    ${scenario.header}
+                </div>
+                ${scenario.body}
+            </div>
+        `;
+
+            contentDiv.innerHTML = phrasesHtml + reportHtml;
+
+            // Reset state
+            selectedPhraseId = null;
+            selectedPhraseText = null;
+            document.getElementById('ai-explanation-container').innerHTML = ''; // Clear previous explanations
+
+            // Reset timer just for visual consistency if needed, but usually exam timer runs continuously
+        }
+
+        function selectPhrase(id, text) {
+            // Deselect previous
+            if (selectedPhraseId) {
+                const prevBtn = document.getElementById(`btn-${selectedPhraseId}`);
+                if (prevBtn) prevBtn.classList.remove('selected');
+            }
+
+            // Select new
+            selectedPhraseId = id;
+            selectedPhraseText = text;
+            const newBtn = document.getElementById(`btn-${id}`);
+            newBtn.classList.add('selected');
+        }
+
+        function handleBlankClick(element) {
+            if (!selectedPhraseId) {
+                alert("Please select a phrase from the top box first!");
+                return;
+            }
+
+            // If this blank already had an answer, enable the old phrase button back
+            const oldId = element.dataset.filledId;
+            if (oldId) {
+                const oldBtn = document.getElementById(`btn-${oldId}`);
+                if (oldBtn) oldBtn.classList.remove('used');
+            }
+
+            // Fill the blank
+            element.textContent = selectedPhraseText;
+            element.dataset.filledId = selectedPhraseId;
+            element.classList.add('filled');
+            element.classList.remove('correct', 'incorrect'); // Reset validation styles
+
+            // Mark phrase as used
+            const btn = document.getElementById(`btn-${selectedPhraseId}`);
+            btn.classList.add('used');
+            btn.classList.remove('selected');
+
+            // Reset selection
+            selectedPhraseId = null;
+            selectedPhraseText = null;
+        }
+
+        function checkAnswers() {
+            const currentScenario = scenarios[currentScenarioIndex];
+            const blanks = document.querySelectorAll('.blank-space');
+            let feedbackHtml = '';
+            let allCorrect = true;
+
+            blanks.forEach((blank, index) => {
+                const userAnsId = blank.dataset.filledId;
+                const correctAnsId = blank.dataset.ans;
+                const correctText = currentScenario.phrases.find(p => p.id === correctAnsId).text;
+
+                if (userAnsId === correctAnsId) {
+                    blank.classList.add('correct');
+                    feedbackHtml += `<div class="explanation-item">
+                    <div class="correct-text">Blank ${index + 1}: Correct!</div>
+                    <div class="logic-text">${currentScenario.explanations[correctAnsId]}</div>
+                </div>`;
+                } else {
+                    blank.classList.add('incorrect');
+                    allCorrect = false;
+                    feedbackHtml += `<div class="explanation-item">
+                    <div style="color:red; font-weight:bold;">Blank ${index + 1}: Incorrect</div>
+                    <div>Correct Answer: <b>${correctText}</b></div>
+                    <div class="logic-text">${currentScenario.explanations[correctAnsId]}</div>
+                </div>`;
+                }
+            });
+
+            document.getElementById('feedback-content').innerHTML = feedbackHtml;
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('modal').style.display = 'none';
+            // Hide explanation for next time
+            // document.getElementById('ai-explanation-container').innerHTML = ''; 
+        }
+
+        function prevScenario() {
+            currentScenarioIndex--;
+            if (currentScenarioIndex < 0) {
+                currentScenarioIndex = scenarios.length - 1; // Loop to last
+            }
+            loadScenario(currentScenarioIndex);
+        }
+
+        function nextScenario() {
+            currentScenarioIndex++;
+            if (currentScenarioIndex >= scenarios.length) {
+                currentScenarioIndex = 0; // Loop back
+            }
+            loadScenario(currentScenarioIndex);
+        }
+
+        // Timer Logic
+        setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                const m = Math.floor(timeLeft / 60);
+                const s = timeLeft % 60;
+                document.getElementById('time-display').textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+            }
+        }, 1000);
+
+        // Initialize
+        loadScenario(0);
+
+    </script>
+
+</body>
+
+</html>

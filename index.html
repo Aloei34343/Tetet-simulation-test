@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TETET Test Simulator - Main Menu</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Roboto:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #003366;
+            /* Dark Blue */
+            --secondary-color: #aa1e23;
+            /* Dark Red - typical academic accent, or we can use Gold */
+            --accent-color: #dda60a;
+            /* Gold */
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --text-light: #666666;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Sarabun', 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #001f3f);
+            color: var(--white);
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            margin-top: 10px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: -40px auto 40px;
+            padding: 0 20px;
+            width: 100%;
+            box-sizing: border-box;
+            flex-grow: 1;
+        }
+
+        /* Grid Layout */
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        /* Card Style */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border-top: 4px solid transparent;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Category Specific Border Colors */
+        .card.reading {
+            border-top-color: #2196F3;
+        }
+
+        .card.writing {
+            border-top-color: #4CAF50;
+        }
+
+        .card.listening {
+            border-top-color: #FFC107;
+        }
+
+        .card.speaking {
+            border-top-color: #F44336;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* List Links */
+        .topic-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .topic-item {
+            margin-bottom: 12px;
+        }
+
+        .topic-link {
+            display: block;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topic-link:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding-left: 20px;
+            box-shadow: 0 4px 10px rgba(0, 51, 102, 0.2);
+        }
+
+        .topic-link .arrow {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .topic-link:hover .arrow {
+            opacity: 1;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            background-color: #e9ecef;
+            margin-top: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .container {
+                margin-top: -20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>TETET Test Simulator</h1>
+        <div class="subtitle">Test of English for Thai Engineers and Technologists</div>
+    </header>
+
+    <div class="container">
+        <div class="grid-menu">
+
+            <!-- 1. Reading -->
+            <div class="card reading">
+                <div class="card-icon">📖</div>
+                <div class="card-title">
+                    1. การอ่าน (Reading)
+                </div>
+                <ul class="topic-list">
+                    <li class="topic-item">
+                        <a href="#" class="topic-link">
+                            Survival Reading
+                            <span class="arrow">➜</span>
+                        </a>
+                    </li>
+                    <li class="topic-item">
+                        <a href="#" class="topic-link">
+                            Internet Reading
+                            <span class="arrow">➜</span>
+                        </a>
+                    </li>
+                    <li class="topic-item">
+                        <a href="#" class="topic-link">
+                            Technical Manuals
+                            <span class="arrow">➜</span>
+                        </a>
+                    </li>
+                    <li class="topic-item">
+                        <a href="#" class="topic-link">
+                            E-mails
+                            <span class="arrow">➜</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 2. Writing -->
+            <div class="card writing">
+                <div class="card-icon">✍️</div>
+                <div class="card-title">
+                    2. การเขียน (Writing)
+                </div>
+                <ul class="topic-list">
+                    <li class="topic-item">
+                        <!-- Link to the file we know exists -->
+                        <a href="report_writing.html" class="topic-link">
+                            Report Writing
+                            <span class="arrow">➜</span>
+                        </a>
+                    </li>
+                    <li class="topic-item">
+                        <a href="memo_reading.html" class="topic-link">
+                            Memorandum (Memo)
+                            <span class="arrow">➜</span>
+                        </a>
+                    </li>
+                    <li class="topic-item">
+                        <a href="email_writing.html" class="topic-link">
+                            E-mail Writing
+                            <span class="arrow">➜</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 3. Listening -->
+            <div class="card listening">
+                <div class="card-icon">🎧</div>
+                <div class="card-title">
+                    3. การฟัง (Listening)
+                </div>
+                <ul class="topic-list">
+                    <li class="topic-item">
+                        <a href="#" class="topic-link">
+                            Meetings
+                            <span class="arrow">➜</span>
+                        </a>
+                    </li>
+                    <li class="topic-item">
+                        <a href="#" class="topic-link">
+                            Informal Conversations
+                            <span class="arrow">➜</span>
+                        </a>
+                    </li>
+                    <li class="topic-item">
+                        <a href="#" class="topic-link">
+                            Telephones / AVRS
+                            <span class="arrow">➜</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 4. Speaking -->
+            <div class="card speaking">
+                <div class="card-icon">🗣️</div>
+                <div class="card-title">
+                    4. การพูด (Speaking)
+                </div>
+                <ul class="topic-list">
+                    <li class="topic-item">
+                        <a href="#" class="topic-link">
+                            Short Q&A
+                            <span class="arrow">➜</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 TETET Simulator. King Mongkut's University of Technology North Bangkok.
+    </footer>
+
+</body>
+
+</html>

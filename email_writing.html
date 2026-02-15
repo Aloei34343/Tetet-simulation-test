@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TETET Email Writing Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        .english-font {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* Flyer Styling */
+        .flyer-container {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .flyer-paper {
+            background-color: white;
+            color: #333;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flyer-header {
+            background-color: #dc2626;
+            /* Red */
+            color: white;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Bar -->
+    <header class="bg-gray-900 text-white p-3 flex justify-between items-center shadow-md z-10">
+        <div class="flex items-center space-x-2">
+            <span class="bg-yellow-500 text-gray-900 font-bold px-2 py-1 rounded text-xs">TEST MODE</span>
+            <h1 class="text-lg font-bold">Email Writing Simulation</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button onclick="generateAIEmailTask()"
+                class="bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-1 rounded flex items-center transition">
+                <span class="mr-1">✨</span> Generate AI Task
+            </button>
+            <button onclick="resetKey()"
+                class="border border-gray-600 hover:border-white text-gray-400 hover:text-white text-xs px-2 py-1 rounded transition">
+                🔑 Reset Key
+            </button>
+            <div class="h-6 w-px bg-gray-700 mx-2"></div>
+            <select id="scenario-selector" onchange="loadScenario(this.value)"
+                class="bg-gray-800 text-white text-xs border border-gray-600 rounded px-2 py-1 outline-none focus:border-blue-500">
+                <option value="0">1. Safety Workshop (Default)</option>
+                <option value="1">2. Siemens PLC (Advanced)</option>
+                <option value="2">3. SmartTech Training (Maintenance)</option>
+            </select>
+            <span id="token-usage" class="text-[10px] text-gray-400 font-mono hidden">Tokens: 0</span>
+            <div class="flex items-center bg-gray-800 px-3 py-1 rounded">
+                <span class="text-xl mr-2">⏱️</span>
+                <span id="timer" class="font-mono text-xl font-bold text-red-400">15:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 flex flex-col md:flex-row h-full overflow-hidden relative">
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay"
+            class="absolute inset-0 bg-white bg-opacity-90 z-50 hidden flex flex-col items-center justify-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-3"></div>
+            <p class="text-purple-800 font-bold animate-pulse">Generating Realistic Exam Scenario...</p>
+            <p class="text-gray-500 text-xs mt-2">(If this takes time, we are retrying automatically...)</p>
+        </div>
+
+        <!-- LEFT PANEL: Source Material & Info -->
+        <div
+            class="w-full md:w-1/2 bg-gray-200 p-4 flex flex-col border-r border-gray-300 overflow-y-auto custom-scroll relative">
+
+            <!-- Context Toggles (Absolute Top Right of Panel) -->
+            <div class="absolute top-4 right-4 z-20 flex flex-col space-y-2">
+                <button onclick="toggleInfo('situation')"
+                    class="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg shadow-lg text-sm font-bold flex items-center justify-between w-40 transition-all border-l-4 border-yellow-400">
+                    <span>See Situation</span>
+                    <span id="sit-dot" class="w-3 h-3 bg-green-500 rounded-full"></span>
+                </button>
+                <button onclick="toggleInfo('instruction')"
+                    class="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg shadow-lg text-sm font-bold flex items-center justify-between w-40 transition-all border-l-4 border-white">
+                    <span>See Instruction</span>
+                    <span id="ins-dot" class="w-3 h-3 bg-gray-500 rounded-full"></span>
+                </button>
+            </div>
+
+            <!-- Overlays (Situation & Instruction) -->
+            <div id="situation-box"
+                class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 p-4 mb-4 rounded shadow-md mt-16 mx-4">
+                <h3 class="font-bold text-lg mb-1">Situation:</h3>
+                <p class="text-sm" id="situation-text">You are a <strong>Senior Engineer</strong> at VoltStream
+                    Manufacturing. Your team
+                    needs to update their safety certifications.</p>
+            </div>
+
+            <div id="instruction-box"
+                class="hidden bg-blue-100 border-l-4 border-blue-500 text-blue-900 p-4 mb-4 rounded shadow-md mt-16 mx-4">
+                <h3 class="font-bold text-lg mb-1">Instructions:</h3>
+                <p class="text-sm mb-2" id="instruction-header">Write an email to <strong>Mr. David Wong</strong> based
+                    on the flyer.</p>
+                <ul class="list-disc list-inside text-sm space-y-1" id="instruction-list">
+                    <li>Enquire if the course covers <strong>High Voltage Switchgear</strong>.</li>
+                    <li>Ask if there is a <strong>discount for a group of 5 people</strong>.</li>
+                    <li>Ask about the <strong>cancellation policy</strong>.</li>
+                </ul>
+            </div>
+
+            <!-- The Flyer (Source Material) -->
+            <div class="flyer-paper w-full max-w-xl mx-auto shadow-2xl rounded-lg mt-4 flex-shrink-0 min-h-[600px]">
+                <!-- Header -->
+                <div class="flyer-header p-6 pb-10 text-center">
+                    <h2 class="text-3xl font-bold uppercase tracking-wider english-font" id="flyer-title">Safety First
+                    </h2>
+                    <p class="text-sm opacity-90 mt-1" id="flyer-subtitle">Professional Engineering Training Center</p>
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 pb-32" id="flyer-body">
+                    <div class="border-b-2 border-red-500 pb-4 mb-4 text-center">
+                        <h3 class="text-2xl font-bold text-gray-800 english-font mb-2">ELECTRICAL SAFETY WORKSHOP</h3>
+                        <p class="text-red-600 font-bold tracking-widest text-sm">NFPA 70E COMPLIANT</p>
+                    </div>
+
+                    <div class="space-y-4 text-gray-700 text-sm english-font">
+                        <p class="leading-relaxed">
+                            Protect your team and facility. This comprehensive 2-day workshop provides in-depth
+                            knowledge on electrical hazards, risk assessment, and safe work practices.
+                        </p>
+
+                        <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
+                            <div class="grid grid-cols-1 gap-2">
+                                <div class="flex items-center"><span class="mr-2 text-xl">📅</span>
+                                    <strong>Date:</strong> March 15-16, 2026
+                                </div>
+                                <div class="flex items-center"><span class="mr-2 text-xl">📍</span>
+                                    <strong>Venue:</strong> Grand Tek Hotel, Bangkok
+                                </div>
+                                <div class="flex items-center"><span class="mr-2 text-xl">💰</span>
+                                    <strong>Fee:</strong> 4,500 THB / Person
+                                </div>
+                                <div class="flex items-center"><span class="mr-2 text-xl">👥</span> <strong>Who Should
+                                        Attend:</strong> Electrical Engineers, Safety Officers, Maintenance Technicians
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Expanded Agenda -->
+                        <div class="mt-4 border-l-4 border-blue-500 pl-4">
+                            <h4 class="font-bold text-blue-900 mb-2">Training Agenda:</h4>
+                            <div class="mb-2">
+                                <strong class="text-gray-900">Day 1: Fundamentals</strong>
+                                <ul class="list-disc list-inside ml-2 text-gray-600 text-xs">
+                                    <li>Electrical Hazard Analysis</li>
+                                    <li>Understanding NFPA 70E Standards</li>
+                                    <li>Arc Flash Risk Assessment</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <strong class="text-gray-900">Day 2: Practical Application</strong>
+                                <ul class="list-disc list-inside ml-2 text-gray-600 text-xs">
+                                    <li>PPE Selection & Inspection</li>
+                                    <li>Lockout / Tagout (LOTO) Procedures</li>
+                                    <li>Emergency Response Drills</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="bg-yellow-50 p-3 rounded border border-yellow-200 text-xs text-yellow-800 mt-4">
+                            <strong>Note:</strong>
+                            <ul class="list-square list-inside mt-1">
+                                <li>Fee includes training materials, lunch, and coffee breaks.</li>
+                                <li>Certificate of Completion provided upon passing the final assessment.</li>
+                                <li>Participants are encouraged to bring their own safety shoes.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <!-- Footer -->
+                <div class="bg-gray-900 text-white p-3 text-center mt-auto absolute bottom-0 w-full" id="flyer-footer">
+                    <p class="text-[10px] uppercase tracking-widest text-gray-400 mb-1">For Registration & Inquiries:
+                    </p>
+                    <h4 class="text-sm font-bold text-white">Mr. David Wong</h4>
+                    <p class="text-xs text-yellow-400 font-mono">david.w@safetyfirst-training.com</p>
+                    <p class="text-[10px] text-gray-500 mt-1">www.safetyfirst-training.com/workshops</p>
+                </div>
+            </div>
+
+            <div class="h-10"></div> <!-- Spacer -->
+        </div>
+
+        <!-- RIGHT PANEL: Writing Interface -->
+        <div class="w-full md:w-1/2 bg-blue-50 p-6 flex flex-col h-full">
+            <div class="bg-white rounded-lg shadow-lg flex-1 flex flex-col border border-gray-300 overflow-hidden">
+                <!-- Email Header Fields -->
+                <div class="bg-gray-100 p-4 border-b border-gray-300 space-y-3">
+                    <h2 class="text-sm font-bold text-gray-500 mb-2">Message Composition: TETET Mail</h2>
+
+                    <div class="flex items-center">
+                        <label class="w-20 text-right mr-3 text-sm font-bold text-gray-600">To:</label>
+                        <input type="text" id="email-to"
+                            class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500 english-font"
+                            placeholder="">
+                    </div>
+
+                    <div class="flex items-center">
+                        <label class="w-20 text-right mr-3 text-sm font-bold text-gray-600">Cc:</label>
+                        <input type="text" id="email-cc"
+                            class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500 english-font">
+                    </div>
+
+                    <div class="flex items-center">
+                        <label class="w-20 text-right mr-3 text-sm font-bold text-gray-600">Bcc:</label>
+                        <input type="text" id="email-bcc"
+                            class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500 english-font">
+                    </div>
+
+                    <div class="flex items-center">
+                        <label class="w-20 text-right mr-3 text-sm font-bold text-gray-600">Subject:</label>
+                        <input type="text" id="email-subject"
+                            class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500 english-font"
+                            placeholder="">
+                    </div>
+                </div>
+
+                <!-- Text Area -->
+                <textarea id="email-body"
+                    class="flex-1 p-4 text-sm english-font leading-relaxed resize-none focus:outline-none"
+                    placeholder="Type your email here..."></textarea>
+
+                <!-- Footer Actions -->
+                <div class="bg-gray-100 p-3 border-t border-gray-300 flex justify-end">
+                    <button onclick="checkAnswer()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow transition-colors flex items-center">
+                        <span>Send / Submit</span>
+                        <span class="ml-2">✈️</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal for Feedback -->
+    <div id="feedback-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-green-600 text-white p-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold">📝 Self-Assessment (เฉลยและประเมินผล)</h2>
+                <button onclick="closeModal()" class="text-white hover:text-gray-200 text-2xl">&times;</button>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scroll flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- User Answer -->
+                    <div>
+                        <h3 class="font-bold text-gray-700 mb-2 border-b pb-1">Your Draft:</h3>
+                        <div class="bg-gray-100 p-4 rounded text-sm english-font whitespace-pre-wrap text-gray-600"
+                            id="user-response-display">
+                            (No input)
+                        </div>
+                    </div>
+
+                    <!-- Model Answer -->
+                    <div>
+                        <h3 class="font-bold text-green-700 mb-2 border-b pb-1">Model Answer (ตัวอย่างที่ถูกต้อง):</h3>
+                        <div class="bg-green-50 p-4 rounded border border-green-200 text-sm english-font shadow-inner"
+                            id="model-answer-display">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scoring Checklist -->
+                <div class="mt-6 bg-yellow-50 p-4 rounded border border-yellow-200">
+                    <h3 class="font-bold text-yellow-800 mb-2">✅ จุดเช็คคะแนน (Scoring Checklist):</h3>
+                    <ul class="space-y-2 text-sm text-gray-700" id="checklist-display">
+                        <!-- Populated via JS -->
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-gray-100 p-4 text-right">
+                <button onclick="closeModal()"
+                    class="bg-gray-800 text-white px-6 py-2 rounded hover:bg-black transition">Close & Try
+                    Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Variables ---
+        // Initial state mirroring the structure of new.html data
+        let currentModelAnswer = {};
+        let currentChecklist = [];
+
+        // --- SCENARIO DATA ---
+        const scenarios = [
+            {
+                // ID: 0 (Default - Safety First)
+                flyer: {
+                    org: "Safety First",
+                    docType: "Professional Engineering Training Center",
+                    title: "ELECTRICAL SAFETY WORKSHOP",
+                    subtitle: "NFPA 70E COMPLIANT",
+                    desc: "Protect your team and facility. This comprehensive 2-day workshop provides in-depth knowledge on electrical hazards, risk assessment, and safe work practices.",
+                    details: [
+                        { label: "Date", value: "March 15-16, 2026" },
+                        { label: "Venue", value: "Grand Tek Hotel, Bangkok" },
+                        { label: "Fee", value: "4,500 THB / Person" },
+                        { label: "Attendees", value: "Electrical Engineers, Safety Officers, Techs" }
+                    ],
+                    highlights: {
+                        "Day 1 (Fundamentals)": "Hazard Analysis, NFPA 70E Standards, Arc Flash Risk Assessment",
+                        "Day 2 (Practical)": "PPE Selection, Lockout/Tagout (LOTO), Emergency Drills"
+                    },
+                    notes: [
+                        "Fee includes training materials, lunch, and coffee breaks.",
+                        "Certificate of Completion provided upon passing.",
+                        "Participants encouraged to bring safety shoes."
+                    ],
+                    contact: { name: "Mr. David Wong", email: "david.w@safetyfirst-training.com" }
+                },
+                situation: "You are a <strong>Senior Engineer</strong> at VoltStream Manufacturing. Your team needs to update their safety certifications.",
+                instruction: {
+                    target: "Mr. David Wong",
+                    points: [
+                        "Enquire if the course covers <strong>High Voltage Switchgear</strong>.",
+                        "Ask if there is a <strong>discount for a group of 5 people</strong>.",
+                        "Ask about the <strong>cancellation policy</strong>."
+                    ]
+                },
+                modelAnswer: {
+                    subject: "Inquiry regarding Electrical Safety Workshop details",
+                    body: `Dear Mr. Wong,\n\nI am writing to inquire about the "Electrical Safety Workshop" which will be held on March 15-16, 2026.\n\nI am interested in registering my team for this training, but I would like to request some additional information:\n\n1. Does the course content cover High Voltage Switchgear maintenance?\n2. Do you offer any group discount for a registration of 5 attendees?\n3. What is your cancellation policy in case of an emergency?\n\nI look forward to hearing from you soon.\n\nSincerely,\n[Your Name]\nSenior Engineer`
+                }
+            },
+            {
+                // ID: 1 (From New.html - Siemens)
+                flyer: {
+                    org: "Siemens Industrial Automation",
+                    docType: "PRODUCT QUOTATION REQUEST REF",
+                    title: "SIMATIC S7-1500 PLC",
+                    subtitle: "Part No: 6ES7511-1AK02-0AB0",
+                    desc: "Advanced Controller for medium to large scale applications. High performance, integrated display, and PROFINET interface.",
+                    details: [
+                        { label: "Work Memory", value: "150 KB for program, 1 MB for data" },
+                        { label: "Processing Time", value: "60 ns for bit operations" },
+                        { label: "Interface", value: "PROFINET IRT with 2-port switch" },
+                        { label: "Ambient Temp", value: "-25 °C to +60 °C" },
+                        { label: "Supply Voltage", value: "24V DC (Reverse polarity protection)" }
+                    ],
+                    highlights: {
+                        "Stock Status": "Low Stock (Lead time may apply)",
+                        "EOL Notice": "Replaces older model S7-300 (Migration kit required)"
+                    },
+                    notes: ["Education discount available for universities.", "Warranty: 1 Year standard.", "Shipping: EXW Germany."],
+                    contact: { name: "Mr. Thomas Muller (Sales Manager)", email: "sales.th@siemens-dist.com" }
+                },
+                situation: "You are an <strong>Automation Engineer</strong> designing a new packaging line. You need to order PLCs but need to confirm technical compatibility and delivery time.",
+                instruction: {
+                    target: "Mr. Thomas Muller",
+                    points: [
+                        "Request a <strong>quotation for 5 units</strong> of the S7-1500 PLC.",
+                        "Ask if the <strong>migration kit from S7-300</strong> is included or sold separately.",
+                        "Enquire about the <strong>lead time</strong> (delivery date) as you need them within 4 weeks."
+                    ]
+                },
+                modelAnswer: {
+                    subject: "Quotation Request for SIMATIC S7-1500 PLC and Migration Kit",
+                    body: `Dear Mr. Muller,\n\nI am writing to request a quotation for 5 units of the SIMATIC S7-1500 PLC (Part No: 6ES7511-1AK02-0AB0) for our new packaging line project.\n\nRegarding the technical specifications, could you please clarify if the migration kit for the S7-300 system is included in the package, or if it needs to be purchased separately?\n\nAdditionally, we require these units urgently for installation next month. Could you please confirm if you can deliver them within 4 weeks?\n\nI look forward to receiving your quotation.\n\nSincerely,\n[Your Name]\nAutomation Engineer`
+                }
+            },
+            {
+                // ID: 2 (SmartTech Training - From User HTML)
+                flyer: {
+                    org: "SmartTech Automation Co., Ltd.",
+                    docType: "Training Seminar",
+                    title: "Preventive Maintenance Training",
+                    subtitle: "Improve machine reliability and reduce downtime",
+                    desc: "Preventive Maintenance Training Seminar for technicians and engineers to improve machine reliability and reduce downtime.",
+                    details: [
+                        { label: "Date", value: "March 18–19, 2026" },
+                        { label: "Time", value: "09:00 a.m. – 04:30 p.m." },
+                        { label: "Fee", value: "4,500 THB" },
+                        { label: "Location", "value": "SmartTech Training Center, Chonburi" }
+                    ],
+                    highlights: {
+                        "Deadline": "March 10, 2026"
+                    },
+                    notes: [
+                        "For technicians and engineers.",
+                        "Contact: Ms. Emily Carter"
+                    ],
+                    contact: { name: "Ms. Emily Carter", email: "emily.carter@smarttech.co.th" }
+                },
+                situation: "You are a maintenance technician. Your supervisor asks you to email the training coordinator to get more details about the seminar, check available seats, and request an invoice for 3 employees.",
+                instruction: {
+                    target: "Ms. Emily Carter",
+                    points: [
+                        "Introduce yourself and your company.",
+                        "Explain your interest in the training.",
+                        "Ask about available seats and hands-on practice.",
+                        "Request an invoice for 3 participants."
+                    ]
+                },
+                modelAnswer: {
+                    subject: "Inquiry regarding Preventive Maintenance Training Seminar",
+                    body: `Dear Ms. Carter,\n\nI am writting to inquire about the "Preventive Maintenance Training Seminar" scheduled for March 18–19, 2026.\n\nMy team at [Your Company] is interested in attending to improve our machine reliability skills.\n\nCould you please confirm if there are still available seats? Also, does the seminar include hands-on practice sessions?\n\nIf space is available, please send us an invoice for 3 participants.\n\nBest regards,\n[Your Name]\nMaintenance Technician`
+                }
+            }
+        ];
+
+        // --- AI API Logic ---
+        function getKey() {
+            let key = localStorage.getItem("gemini_api_key");
+            if (!key) {
+                key = prompt("Please enter your Gemini API Key for generation:");
+                if (key) localStorage.setItem("gemini_api_key", key);
+            }
+            return key;
+        }
+
+        function resetKey() {
+            localStorage.removeItem("gemini_api_key");
+            alert("API Key cleared.");
+        }
+
+        async function generateAIEmailTask() {
+            const key = getKey();
+            if (!key) return;
+
+            document.getElementById('loading-overlay').classList.remove('hidden');
+
+            // UPDATE: Expanded prompt to include General Business & Daily Life contexts based on user feedback.
+            const prompt = `
+                You are a professional TETET (Test of English for Trade, Engineering and Technology) exam designer.
+
+                Generate ONE realistic Email Writing simulation test.
+                
+                CONTEXT REQUIREMENTS:
+                The scenario must be randomly selected from one of these categories:
+                1. General Business / Daily Professional Life (e.g., Business Travel, Flight Schedules, Hotel Bookings, Meeting Arrangements).
+                2. Engineering / Technical Support (e.g., Equipment failure, Maintenance request, Safety training).
+                3. Office Administration (e.g., Purchasing supplies, Facility issues, IT support).
+
+                The difficulty level should be intermediate.
+
+                The simulation must include the following content sections (mapped to the JSON output):
+
+                1. INFORMATION (The 'flyer' object)
+                Provide a document source. It could be:
+                - A Flight Schedule / Itinerary (Like Thai Airways, Japan Airlines etc.)
+                - A Conference / Training Poster
+                - A Product Advertisement / Price List
+                - A Hotel Booking Confirmation
+                
+                Include details such as:
+                - Organization Name (Airline, Hotel, Company)
+                - Specific Details (Flight No, Dates, Times, Locations, Prices)
+                - Contact Person & Email
+
+                2. SITUATION (The 'situation' field)
+                Describe a realistic scenario.
+                The user plays a role such as: Engineer, Trainee, Assistant, Coordinator, or Employee.
+                Explain clearly WHO they need to email and WHY.
+                (Example: You are going for job training in Japan. Inform the secretary about your flight arrival so she can arrange a pick-up.)
+
+                3. INSTRUCTIONS (The 'instruction' object)
+                Provide 2-3 specific points the user MUST include in the email, such as:
+                - Informing specific dates/times/flight numbers from the Information section.
+                - Asking a specific question (e.g., "ask for a pick-up", "ask for a discount", "confirm dietary requirements").
+                - Requesting a document or confirmation.
+
+                4. MESSAGE COMPOSITION (The 'modelAnswer' object)
+                Generate a professional Model Answer covering all instructions.
+
+                ---------------------------------------------------------
+                REQUIRED OUTPUT FORMAT:
+                You must return strictly valid JSON ONLY. No markdown formatting.
+                Structure:
+                {
+                    "flyer": {
+                        "org": "Header Name (e.g. Flight Schedule, Company Name)",
+                        "docType": "Document Type (e.g. ITINERARY, INVITATION, NOTICE)",
+                        "title": "Main Title",
+                        "subtitle": "Subtitle / Ref No / Flight No",
+                        "desc": "Brief context or description of the document contents.",
+                        "details": [
+                            {"label": "Label 1", "value": "Value 1"},
+                            {"label": "Label 2", "value": "Value 2"},
+                            {"label": "Label 3", "value": "Value 3"},
+                            {"label": "Label 4", "value": "Value 4"}
+                        ],
+                        "highlights": {
+                            "Key Point 1": "Value",
+                            "Key Point 2": "Value"
+                        },
+                        "notes": ["Note 1", "Note 2"],
+                        "contact": { "name": "Contact Name", "email": "email@example.com" }
+                    },
+                    "situation": "Full Situation description.",
+                    "instruction": {
+                        "target": "Name of Person to write to",
+                        "points": ["Instruction Point 1", "Instruction Point 2", "Instruction Point 3"]
+                    },
+                    "modelAnswer": {
+                        "subject": "Example Model Subject",
+                        "body": "Full body of the email. Use \\n for new lines. Do NOT use HTML tags."
+                    }
+                }
+            `;
+
+            // Updated URL to use gemini-2.5-flash-preview-09-2025
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+            let data = null;
+            // Exponential backoff delays: 1s, 2s, 4s, 8s, 16s
+            const delays = [1000, 2000, 4000, 8000, 16000];
+
+            // Retry Loop
+            for (let i = 0; i <= delays.length; i++) {
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    // Handle 429 (Quota Exceeded) or 5xx Server Errors
+                    if (!res.ok) {
+                        if (res.status === 429 || res.status >= 500) {
+                            if (i < delays.length) {
+                                // Wait before retrying
+                                console.log(`Attempt ${i + 1} failed with ${res.status}. Retrying in ${delays[i]}ms...`);
+                                await new Promise(resolve => setTimeout(resolve, delays[i]));
+                                continue;
+                            }
+                        }
+                        throw new Error(`API Error: ${res.status} ${res.statusText}`);
+                    }
+
+                    data = await res.json();
+                    break; // Success! Exit loop.
+
+                } catch (e) {
+                    // If it's the last attempt, or a non-retryable error
+                    if (i === delays.length) {
+                        console.error(e);
+                        alert("Failed to generate task after multiple retries. Please check your API key or try again later.");
+                        document.getElementById('loading-overlay').classList.add('hidden');
+                        return;
+                    }
+                    // For network errors (fetch failed), also retry
+                    await new Promise(resolve => setTimeout(resolve, delays[i]));
+                }
+            }
+
+            try {
+                if (!data || !data.candidates || data.candidates.length === 0) throw new Error("No content generated.");
+
+                // Show Token Usage
+                if (data.usageMetadata) {
+                    const usage = data.usageMetadata;
+                    const usageText = `Tokens: In ${usage.promptTokenCount} + Out ${usage.candidatesTokenCount} = ${usage.totalTokenCount}`;
+                    const usageEl = document.getElementById('token-usage');
+                    usageEl.innerText = usageText;
+                    usageEl.classList.remove('hidden');
+                }
+
+                let text = data.candidates[0].content.parts[0].text;
+                text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const json = JSON.parse(text);
+
+                renderTask(json);
+                alert("New Scenario Generated!");
+
+            } catch (e) {
+                console.error(e);
+                alert(e.message || "Failed to parse generated task.");
+            } finally {
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }
+        }
+
+        function renderTask(data) {
+            // 1. Situation & Instruction
+            document.getElementById('situation-text').innerText = data.situation;
+            document.getElementById('instruction-header').innerHTML = `Write an email to <strong>${data.instruction.target}</strong> based on the document below.`;
+
+            const insList = document.getElementById('instruction-list');
+            insList.innerHTML = '';
+            data.instruction.points.forEach(point => {
+                const li = document.createElement('li');
+                li.innerText = point;
+                insList.appendChild(li);
+            });
+
+            // 2. Flyer Rendering (Constructing HTML from Data)
+            // Header
+            document.getElementById('flyer-title').innerText = data.flyer.org;
+            document.getElementById('flyer-subtitle').innerText = data.flyer.docType;
+
+            // Body Content Construction
+            let detailsHtml = '';
+            if (data.flyer.details && data.flyer.details.length > 0) {
+                detailsHtml = `<div class="bg-gray-100 p-4 rounded-lg shadow-inner mb-4">
+                    <div class="grid grid-cols-1 gap-2 text-sm">
+                        ${data.flyer.details.map(d => `<div class="flex justify-between border-b border-gray-200 pb-1">
+                            <strong class="text-gray-600">${d.label}:</strong>
+                            <span class="text-gray-900 text-right">${d.value}</span>
+                        </div>`).join('')}
+                    </div>
+                </div>`;
+            }
+
+            let highlightsHtml = '';
+            if (data.flyer.highlights) {
+                highlightsHtml = `<div class="mt-4 border-l-4 border-red-500 pl-4 bg-red-50 p-2">
+                    <h4 class="font-bold text-red-900 mb-2 text-xs uppercase">Important Information:</h4>
+                    ${Object.entries(data.flyer.highlights).map(([k, v]) => `
+                        <div class="mb-1 text-sm"><strong class="text-red-800">${k}:</strong> ${v}</div>
+                    `).join('')}
+                </div>`;
+            }
+
+            let notesHtml = '';
+            if (data.flyer.notes && data.flyer.notes.length > 0) {
+                notesHtml = `<div class="bg-yellow-50 p-3 rounded border border-yellow-200 text-xs text-yellow-800 mt-4">
+                    <strong>Notes:</strong>
+                    <ul class="list-disc list-inside mt-1">
+                        ${data.flyer.notes.map(n => `<li>${n}</li>`).join('')}
+                    </ul>
+                </div>`;
+            }
+
+            // Construct main flyer body HTML
+            document.getElementById('flyer-body').innerHTML = `
+                <div class="border-b-2 border-gray-800 pb-4 mb-4 text-center">
+                    <h3 class="text-2xl font-bold text-gray-900 english-font mb-2 uppercase">${data.flyer.title}</h3>
+                    <p class="text-gray-500 font-mono text-sm">${data.flyer.subtitle}</p>
+                </div>
+
+                <div class="space-y-4 text-gray-700 text-sm english-font">
+                    <p class="leading-relaxed font-bold">${data.flyer.desc}</p>
+                    ${detailsHtml}
+                    ${highlightsHtml}
+                    ${notesHtml}
+                </div>
+            `;
+
+            // Footer
+            const footerHTML = `
+                <p class="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Contact Person:</p>
+                <h4 class="text-sm font-bold text-white">${data.flyer.contact.name}</h4>
+                <p class="text-xs text-yellow-400 font-mono">${data.flyer.contact.email}</p>
+            `;
+            document.getElementById('flyer-footer').innerHTML = footerHTML;
+
+            // Update State
+            currentModelAnswer = data.modelAnswer;
+
+            // Generate dynamic checklist from instructions
+            currentChecklist = [
+                `<strong>Email To:</strong> ${data.flyer.contact.email}`,
+                `<strong>Subject:</strong> Relevant to ${data.flyer.title}`,
+                `<strong>Salutation:</strong> Formal (e.g., Dear ${data.flyer.contact.name.split(' ')[0]})`,
+                ...data.instruction.points.map((p, i) => `<strong>Point ${i + 1}:</strong> ${p}`)
+            ];
+
+            // Reset Input
+            document.getElementById('email-to').value = '';
+            document.getElementById('email-cc').value = '';
+            document.getElementById('email-bcc').value = '';
+            document.getElementById('email-subject').value = '';
+            document.getElementById('email-body').value = '';
+            document.getElementById('user-response-display').innerText = "(No input)";
+        }
+
+        // --- Timer Logic ---
+        let timeRemaining = 15 * 60; // 15 minutes in seconds
+        const timerElement = document.getElementById('timer');
+
+        const timerInterval = setInterval(() => {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            if (timeRemaining > 0) {
+                timeRemaining--;
+                if (timeRemaining < 60) {
+                    timerElement.classList.remove('text-gray-900');
+                    timerElement.classList.add('text-red-600', 'animate-pulse');
+                }
+            } else {
+                clearInterval(timerInterval);
+                alert("Time's up! Please submit your email.");
+            }
+        }, 1000);
+
+        // --- Toggle Logic ---
+        function toggleInfo(type) {
+            const sitBox = document.getElementById('situation-box');
+            const insBox = document.getElementById('instruction-box');
+            const sitDot = document.getElementById('sit-dot');
+            const insDot = document.getElementById('ins-dot');
+
+            if (type === 'situation') {
+                const isHidden = sitBox.classList.contains('hidden');
+                sitBox.classList.toggle('hidden');
+                insBox.classList.add('hidden');
+
+                // Update dots
+                sitDot.classList.toggle('bg-gray-500', !isHidden);
+                sitDot.classList.toggle('bg-green-500', isHidden);
+                insDot.classList.add('bg-gray-500');
+                insDot.classList.remove('bg-green-500');
+            } else {
+                const isHidden = insBox.classList.contains('hidden');
+                insBox.classList.toggle('hidden');
+                sitBox.classList.add('hidden');
+
+                // Update dots
+                insDot.classList.toggle('bg-gray-500', !isHidden);
+                insDot.classList.toggle('bg-green-500', isHidden);
+                sitDot.classList.add('bg-gray-500');
+                sitDot.classList.remove('bg-green-500');
+            }
+        }
+
+        // --- Check Answer & Feedback ---
+        function checkAnswer() {
+            const subject = document.getElementById('email-subject').value;
+            const body = document.getElementById('email-body').value;
+            const to = document.getElementById('email-to').value;
+
+            // Render User Input
+            const displayHtml = `
+                <p class="mb-2"><span class="font-bold">To:</span> ${to || '<span class="text-red-500">[Missing]</span>'}</p>
+                <p class="mb-2"><span class="font-bold">Subject:</span> ${subject || '<span class="text-red-500">[Missing]</span>'}</p>
+                <hr class="my-2 border-gray-300">
+                <div class="whitespace-pre-wrap">${body || '<span class="text-red-500">[No content written]</span>'}</div>
+            `;
+
+            document.getElementById('user-response-display').innerHTML = displayHtml;
+
+            // Render Model Answer (Text -> HTML)
+            const modelHtml = `
+                <p class="mb-2"><span class="font-bold text-gray-600">Subject:</span> ${currentModelAnswer.subject}</p>
+                <hr class="my-2 border-green-200">
+                <p class="whitespace-pre-wrap">${currentModelAnswer.body}</p>
+            `;
+            document.getElementById('model-answer-display').innerHTML = modelHtml;
+
+            // Render Checklist
+            const listContainer = document.getElementById('checklist-display');
+            listContainer.innerHTML = '';
+            currentChecklist.forEach(item => {
+                const li = document.createElement('li');
+                li.className = "flex items-start";
+                li.innerHTML = `<span class="mr-2 text-green-500">✔</span> <span class="ml-2">${item}</span>`;
+                listContainer.appendChild(li);
+            });
+
+            document.getElementById('feedback-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+        }
+
+        // --- Load Scenario Logic ---
+        function loadScenario(index) {
+            const data = scenarios[index];
+            if (!data) return;
+            renderTask(data);
+
+            // Allow user to use "AI Generate" on top of this if they want, but resetting selects the list item
+        }
+
+        // Initialize with default
+        setTimeout(() => {
+            loadScenario(0);
+            toggleInfo('instruction');
+        }, 500);
+    </script>
+</body>
+
+</html>

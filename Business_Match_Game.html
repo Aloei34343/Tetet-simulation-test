@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Vocabulary Match-Up</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .instructions {
+            background-color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+            color: #555;
+            font-size: 14px;
+        }
+        #game-container {
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: white;
+        }
+        canvas {
+            background-color: #ffffff;
+            cursor: crosshair;
+            display: block;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background-color: #3498db;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button#reset-btn {
+            background-color: #e74c3c;
+        }
+        button#reset-btn:hover {
+            background-color: #c0392b;
+        }
+        .score-board {
+            font-size: 18px;
+            font-weight: bold;
+            color: #27ae60;
+            margin-left: 20px;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Business Match-Up Game</h1>
+    
+    <div class="instructions">
+        👉 <b>How to play:</b> Drag a line from the <b>"Context/Need"</b> on the left to the correct <b>"Company/Department"</b> on the right.<br>
+        (ลากเส้นจาก "ความต้องการ" ฝั่งซ้าย ไปหา "ชื่อบริษัท" ฝั่งขวาที่สัมพันธ์กัน)
+    </div>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+    </div>
+
+    <div class="controls">
+        <button onclick="initGame()">🔄 New Round (Random)</button>
+        <div class="score-board">Score: <span id="score">0</span> / 5</div>
+    </div>
+
+    <script>
+        // --- Database: 100 Vocabulary Pairs ---
+        const database = [
+            // 1. Recruitment
+            { cat: "Recruitment", q: "Need to hire new staff", a: "Staffing Solutions" },
+            { cat: "Recruitment", q: "Looking for a manager", a: "Headhunters Inc." },
+            { cat: "Recruitment", q: "Searching for talent", a: "Talent Scout" },
+            { cat: "Recruitment", q: "Need temporary workers", a: "Workforce Agency" },
+            { cat: "Recruitment", q: "Apply for a job", a: "Job Center" },
+            { cat: "Recruitment", q: "Employee records", a: "Personnel Dept." },
+            { cat: "Recruitment", q: "Career advice needed", a: "Career Path Ltd." },
+            { cat: "Recruitment", q: "Manpower shortage", a: "Manpower Group" },
+            { cat: "Recruitment", q: "Recruiting experts", a: "Hiring Pros" },
+            { cat: "Recruitment", q: "Human resources", a: "Human Capital" },
+
+            // 2. Accounting/Finance
+            { cat: "Accounting", q: "Check company accounts", a: "Audit Masters" },
+            { cat: "Accounting", q: "Financial year end", a: "Fiscal Consultants" },
+            { cat: "Accounting", q: "Reduce tax payment", a: "Tax Savers" },
+            { cat: "Accounting", q: "Bookkeeping services", a: "Ledger & Co." },
+            { cat: "Accounting", q: "Plan yearly budget", a: "Budget Planners" },
+            { cat: "Accounting", q: "Invest company money", a: "Wealth Management" },
+            { cat: "Accounting", q: "Pay employee salaries", a: "Payroll Services" },
+            { cat: "Accounting", q: "Investment advice", a: "Financial Advisors" },
+            { cat: "Accounting", q: "Manage company assets", a: "Asset Care" },
+            { cat: "Accounting", q: "Analyze balance sheet", a: "Balance Sheet Ltd." },
+
+            // 3. Legal
+            { cat: "Legal", q: "Sued by a client", a: "Justice Associates" },
+            { cat: "Legal", q: "Need a lawyer", a: "Legal Eagles" },
+            { cat: "Legal", q: "Draft a contract", a: "Law Partners" },
+            { cat: "Legal", q: "Court case pending", a: "Litigation Group" },
+            { cat: "Legal", q: "Legal advice needed", a: "Solicitors Firm" },
+            { cat: "Legal", q: "Corporate regulations", a: "Corporate Counsel" },
+            { cat: "Legal", q: "Defend company rights", a: "Rights Defenders" },
+            { cat: "Legal", q: "Review agreement", a: "Contract Reviewers" },
+            { cat: "Legal", q: "Attorney service", a: "Attorney At Law" },
+            { cat: "Legal", q: "Dispute resolution", a: "The Barristers" },
+
+            // 4. Logistics
+            { cat: "Logistics", q: "Ship goods overseas", a: "Fast Freight" },
+            { cat: "Logistics", q: "Send large cargo", a: "Cargo Express" },
+            { cat: "Logistics", q: "International shipping", a: "Global Shipping" },
+            { cat: "Logistics", q: "Supply chain issue", a: "Supply Chain Sol." },
+            { cat: "Logistics", q: "Move office furniture", a: "Moving Masters" },
+            { cat: "Logistics", q: "Truck delivery", a: "Fleet Transport" },
+            { cat: "Logistics", q: "Send a package directly", a: "Delivery Direct" },
+            { cat: "Logistics", q: "Urgent document delivery", a: "Courier Services" },
+            { cat: "Logistics", q: "Sea freight needed", a: "Port Authority" },
+            { cat: "Logistics", q: "Distribute products", a: "Distribution Hub" },
+
+            // 5. Marketing
+            { cat: "Marketing", q: "Advertise a product", a: "AdVert Media" },
+            { cat: "Marketing", q: "Build company brand", a: "Brand Builders" },
+            { cat: "Marketing", q: "Public relations (PR)", a: "PR Agency" },
+            { cat: "Marketing", q: "Reach more customers", a: "Market Reach" },
+            { cat: "Marketing", q: "Increase sales volume", a: "Sales Force" },
+            { cat: "Marketing", q: "Run a promotion", a: "Promo Plus" },
+            { cat: "Marketing", q: "Design a logo", a: "Creative Studio" },
+            { cat: "Marketing", q: "Online social media", a: "Digital Marketing" },
+            { cat: "Marketing", q: "Connect with clients", a: "Customer Connect" },
+            { cat: "Marketing", q: "Buy media space", a: "Media Group" },
+
+            // 6. IT
+            { cat: "IT", q: "Install office network", a: "Network Sys." },
+            { cat: "IT", q: "Computer is broken", a: "Tech Support" },
+            { cat: "IT", q: "Protect from virus", a: "Cyber Safe" },
+            { cat: "IT", q: "Develop new software", a: "Software House" },
+            { cat: "IT", q: "Recover lost data", a: "Data Recovery" },
+            { cat: "IT", q: "Store files online", a: "Cloud Services" },
+            { cat: "IT", q: "Create a website", a: "Web Developers" },
+            { cat: "IT", q: "Server maintenance", a: "System Admin" },
+            { cat: "IT", q: "Fix laptop hardware", a: "Hardware Fix" },
+            { cat: "IT", q: "IT consultation", a: "IT Solutions" },
+
+            // 7. Engineering
+            { cat: "Engineering", q: "Build a bridge", a: "Civil Works" },
+            { cat: "Engineering", q: "Check building structure", a: "Struct-Sure" },
+            { cat: "Engineering", q: "Construct a factory", a: "Build Right" },
+            { cat: "Engineering", q: "Design a blueprint", a: "Architects Studio" },
+            { cat: "Engineering", q: "Rent a crane", a: "Heavy Machinery" },
+            { cat: "Engineering", q: "Manage construction site", a: "Site Managers" },
+            { cat: "Engineering", q: "Repave the road", a: "Paving Pros" },
+            { cat: "Engineering", q: "Land survey needed", a: "Surveying Team" },
+            { cat: "Engineering", q: "Install wiring system", a: "Electrical Eng." },
+            { cat: "Engineering", q: "Fix factory machines", a: "Mechanical Systems" },
+
+            // 8. Maintenance
+            { cat: "Maintenance", q: "Clean the office", a: "Janitorial Services" },
+            { cat: "Maintenance", q: "Deep cleaning needed", a: "Clean Sweep" },
+            { cat: "Maintenance", q: "General repairs", a: "Fix-It All" },
+            { cat: "Maintenance", q: "Building maintenance", a: "Property Care" },
+            { cat: "Maintenance", q: "Water pipe leaking", a: "Plumbers Unit" },
+            { cat: "Maintenance", q: "Air conditioner broken", a: "HVAC Repair" },
+            { cat: "Maintenance", q: "Insects/Rats problem", a: "Pest Control" },
+            { cat: "Maintenance", q: "Garbage disposal", a: "Waste Mgmt." },
+            { cat: "Maintenance", q: "Facility upkeep", a: "Building Services" },
+            { cat: "Maintenance", q: "Fix broken door", a: "Handyman Co." },
+
+            // 9. Catering
+            { cat: "Catering", q: "Order office lunch", a: "Tasty Bites" },
+            { cat: "Catering", q: "Organize a banquet", a: "Banquet Halls" },
+            { cat: "Catering", q: "Plan a corporate event", a: "Event Planners" },
+            { cat: "Catering", q: "Company party", a: "Party Organizers" },
+            { cat: "Catering", q: "Hire a private chef", a: "Chef On Call" },
+            { cat: "Catering", q: "Food delivery service", a: "Food Service" },
+            { cat: "Catering", q: "Drinks and snacks", a: "Refreshment Co." },
+            { cat: "Catering", q: "Executive dining", a: "Corporate Dining" },
+            { cat: "Catering", q: "Arrange a wedding", a: "Wedding Pros" },
+            { cat: "Catering", q: "Hotel & Service", a: "Hospitality Group" },
+
+            // 10. Real Estate
+            { cat: "RealEstate", q: "Find new office space", a: "Office Finders" },
+            { cat: "RealEstate", q: "Sell company property", a: "Property Agents" },
+            { cat: "RealEstate", q: "Real estate broker", a: "Estate Brokers" },
+            { cat: "RealEstate", q: "Buy land for factory", a: "Land Developers" },
+            { cat: "RealEstate", q: "Staff accommodation", a: "Housing Solutions" },
+            { cat: "RealEstate", q: "Sign a rental lease", a: "Lease Corp." },
+            { cat: "RealEstate", q: "Property market info", a: "Realty Group" },
+            { cat: "RealEstate", q: "Rent a warehouse", a: "Space Rentals" },
+            { cat: "RealEstate", q: "Commercial building", a: "Commercial Sites" },
+            { cat: "RealEstate", q: "Find an apartment", a: "Home Hunters" }
+        ];
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+
+        let leftItems = [];
+        let rightItems = [];
+        let connections = [];
+        let isDragging = false;
+        let startItem = null;
+        let currentMouse = { x: 0, y: 0 };
+        let score = 0;
+        let completed = false;
+
+        const BOX_WIDTH = 250;
+        const BOX_HEIGHT = 50;
+        const LEFT_X = 50;
+        const RIGHT_X = 500;
+        const START_Y = 50;
+        const GAP_Y = 80;
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function initGame() {
+            score = 0;
+            completed = false;
+            connections = [];
+            scoreEl.innerText = score;
+
+            // Pick 5 random unique items from database
+            let roundData = [];
+            let indices = new Set();
+            while(indices.size < 5) {
+                indices.add(Math.floor(Math.random() * database.length));
+            }
+            indices.forEach(i => roundData.push(database[i]));
+
+            // Setup Left Side (Questions)
+            leftItems = roundData.map((item, index) => ({
+                id: index,
+                text: item.q,
+                cat: item.cat, // Key for matching
+                x: LEFT_X,
+                y: START_Y + (index * GAP_Y),
+                width: BOX_WIDTH,
+                height: BOX_HEIGHT,
+                matched: false
+            }));
+
+            // Setup Right Side (Answers) - Shuffled
+            let shuffledAnswers = shuffle([...roundData]);
+            rightItems = shuffledAnswers.map((item, index) => ({
+                id: index,
+                text: item.a,
+                cat: item.cat, // Key for matching
+                x: RIGHT_X,
+                y: START_Y + (index * GAP_Y),
+                width: BOX_WIDTH,
+                height: BOX_HEIGHT,
+                matched: false
+            }));
+
+            draw();
+        }
+
+        function drawRect(item, isRight) {
+            ctx.beginPath();
+            ctx.rect(item.x, item.y, item.width, item.height);
+            
+            // Color logic
+            if (item.matched) {
+                ctx.fillStyle = "#d4edda"; // Light Green
+                ctx.strokeStyle = "#28a745";
+            } else {
+                ctx.fillStyle = "#ffffff";
+                ctx.strokeStyle = isRight ? "#e67e22" : "#3498db"; // Orange for Right, Blue for Left
+            }
+            
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Text
+            ctx.fillStyle = "#333";
+            ctx.font = "14px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(item.text, item.x + item.width / 2, item.y + item.height / 2);
+
+            // Connector Point
+            ctx.beginPath();
+            let circleX = isRight ? item.x : item.x + item.width;
+            let circleY = item.y + item.height / 2;
+            ctx.arc(circleX, circleY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = item.matched ? "#28a745" : "#555";
+            ctx.fill();
+        }
+
+        function drawLine(conn) {
+            ctx.beginPath();
+            ctx.moveTo(conn.startX, conn.startY);
+            ctx.lineTo(conn.endX, conn.endY);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = conn.correct ? "#28a745" : "#e74c3c";
+            ctx.stroke();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Background line for visual structure
+            ctx.beginPath();
+            ctx.moveTo(400, 20);
+            ctx.lineTo(400, 480);
+            ctx.strokeStyle = "#eee";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Draw Items
+            leftItems.forEach(item => drawRect(item, false));
+            rightItems.forEach(item => drawRect(item, true));
+
+            // Draw Established Connections
+            connections.forEach(conn => drawLine(conn));
+
+            // Draw Dragging Line
+            if (isDragging && startItem) {
+                ctx.beginPath();
+                ctx.moveTo(startItem.x + startItem.width, startItem.y + startItem.height / 2);
+                ctx.lineTo(currentMouse.x, currentMouse.y);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#555";
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        // Mouse Events
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // Check if clicked on Left Item
+            leftItems.forEach(item => {
+                if (!item.matched && x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height) {
+                    isDragging = true;
+                    startItem = item;
+                }
+            });
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                currentMouse.x = e.clientX - rect.left;
+                currentMouse.y = e.clientY - rect.top;
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (isDragging && startItem) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                let matchFound = false;
+
+                // Check collision with Right Items
+                rightItems.forEach(item => {
+                    if (!item.matched && x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height) {
+                        
+                        // Check Logic
+                        const isCorrect = startItem.cat === item.cat;
+                        
+                        if (isCorrect) {
+                            startItem.matched = true;
+                            item.matched = true;
+                            score++;
+                            scoreEl.innerText = score;
+                            
+                            connections.push({
+                                startX: startItem.x + startItem.width,
+                                startY: startItem.y + startItem.height / 2,
+                                endX: item.x,
+                                endY: item.y + item.height / 2,
+                                correct: true
+                            });
+                        } else {
+                            // Feedback for wrong match (flash red line then disappear)
+                            // We don't store it permanently to allow retry
+                            alert("❌ Incorrect! Try again.\n(หาบริษัทที่ไม่ตรงกับความต้องการ)");
+                        }
+                        matchFound = true;
+                    }
+                });
+
+                isDragging = false;
+                startItem = null;
+                draw();
+
+                if (score === 5) {
+                    setTimeout(() => alert("🎉 Excellent! All matched correctly.\nPress 'New Round' to play again."), 100);
+                }
+            }
+        });
+
+        // Start game on load
+        initGame();
+
+    </script>
+</body>
+</html>
