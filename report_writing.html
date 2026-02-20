@@ -1205,6 +1205,41 @@
                     p3: "Core argument/Finding statement.",
                     p4: "Counterargument or constraint phrase (However...)."
                 }
+            },
+            {
+                type: "Cooling Tower Pump",
+                phrases: [
+                    { id: "p1", text: "I strongly recommend that" },
+                    { id: "p2", text: "Due to the worn-out bearings" },
+                    { id: "p3", text: "On October 12, 2025" },
+                    { id: "p4", text: "The objective of this inspection was" },
+                    { id: "p5", text: "After disassembling the pump unit" }
+                ],
+                header: `
+                <div><strong>To:</strong> Sarah Jenkins, Facility Manager</div>
+                <div><strong>From:</strong> Your Name, Maintenance Engineer</div>
+                <div><strong>Subject:</strong> Inspection Report of Cooling Tower Pump P-01</div>
+                <div><strong>Date:</strong> October 13, 2025</div>
+            `,
+                body: `
+                <div class="doc-section-title">Summary</div>
+                1) <span class="blank-space" data-ans="p4" onclick="handleBlankClick(this)"></span> to determine the cause of the severe vibration and loud noise reported by the night shift operators. 
+                2) <span class="blank-space" data-ans="p5" onclick="handleBlankClick(this)"></span>, we found that the internal bearings were completely degraded. 
+                3) <span class="blank-space" data-ans="p2" onclick="handleBlankClick(this)"></span>, the pump cannot operate safely and might damage the entire cooling system.
+                
+                <div class="doc-section-title">Background</div>
+                4) <span class="blank-space" data-ans="p3" onclick="handleBlankClick(this)"></span>, my team and I shut down the Cooling Tower Pump P-01 to conduct a full mechanical inspection. The pump had been running continuously for 8,000 hours without routine maintenance.
+                
+                <div class="doc-section-title">Recommendation</div>
+                5) <span class="blank-space" data-ans="p1" onclick="handleBlankClick(this)"></span> we order a replacement bearing kit immediately and keep the pump offline until the repair is completed.
+            `,
+                explanations: {
+                    p4: "Starts the sentence about 'objective/purpose'.",
+                    p5: "Time/Action clause 'After disassembling...' leading to a finding.",
+                    p2: "Cause clause 'Due to...'.",
+                    p3: "Date/Time phrase 'On October 12...'.",
+                    p1: "Recommendation phrase 'I strongly recommend that...'."
+                }
             }
         ];
 

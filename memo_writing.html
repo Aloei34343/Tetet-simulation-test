@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TETET Memorandum Writing Simulation</title>
+    <style>
+        :root {
+            --header-bg: #000000;
+            --header-text: #ffffff;
+            --btn-yellow: #ffd700;
+            --btn-ai: #8e24aa;
+            --memo-bg: #e8f5e9;
+            --border-green: #4caf50;
+            --slot-bg: #ffffff;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 900px;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .scenario-badge {
+            font-size: 14px;
+            background: #333;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid #555;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .ai-btn {
+            background: linear-gradient(45deg, #7b1fa2, #ba68c8);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
+        }
+
+        .ai-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .key-btn {
+            background: transparent;
+            color: #ccc;
+            border: 1px solid #555;
+            padding: 5px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        /* Main Content */
+        .memo-container {
+            padding: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+            background-color: white;
+        }
+
+        .context-box {
+            background-color: #fffde7;
+            border: 1px solid #fbc02d;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .memo-paper {
+            background-color: var(--memo-bg);
+            border: 2px solid var(--border-green);
+            padding: 25px;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .memo-header-text {
+            font-family: 'Courier New', monospace;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            text-decoration: underline;
+        }
+
+        .summary-text {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .question-block {
+            margin-bottom: 25px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            border: 1px dashed #ccc;
+        }
+
+        .sentence-start {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+            color: #000;
+        }
+
+        /* Slots and Phrases */
+        .slots-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+
+        .slot {
+            min-width: 100px;
+            height: 35px;
+            background-color: var(--slot-bg);
+            border-bottom: 2px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #1565c0;
+            font-weight: bold;
+            flex-grow: 1;
+            transition: all 0.2s;
+        }
+
+        .slot:hover {
+            background-color: #e3f2fd;
+        }
+
+        .slot.filled {
+            border-bottom-color: #2196f3;
+        }
+
+        .slot.correct {
+            border-bottom-color: #4caf50;
+            background-color: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .slot.incorrect {
+            border-bottom-color: #f44336;
+            background-color: #ffcdd2;
+            color: #c62828;
+        }
+
+        .separator {
+            font-size: 18px;
+            color: #888;
+            font-weight: bold;
+        }
+
+        .options-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-start;
+            margin-top: 5px;
+            min-height: 40px;
+        }
+
+        .option-chip {
+            background: white;
+            border: 1px solid #bbb;
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 13px;
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+
+        .option-chip:hover {
+            transform: translateY(-2px);
+            border-color: #2196f3;
+            background-color: #f0f8ff;
+        }
+
+        .option-chip.used {
+            opacity: 0.4;
+            pointer-events: none;
+            background-color: #ddd;
+            border-color: #ccc;
+            box-shadow: none;
+        }
+
+        .background-section {
+            margin-top: 20px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.5;
+            border-left: 4px solid #4caf50;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #e0e0e0;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #ccc;
+        }
+
+        .timer {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .check-btn {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .next-btn {
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        /* Feedback Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .correct-answer-box {
+            background: #f1f8e9;
+            padding: 10px;
+            border-left: 4px solid #4caf50;
+            margin: 10px 0;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        /* Loading */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8e24aa;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText" style="margin-top:10px; font-weight:bold; color:#555;">Thinking...</div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>
+                Memorandum Writing
+                <span class="scenario-badge" id="counterBadge">1 / 20</span>
+            </h1>
+            <div class="action-buttons">
+                <button class="ai-btn" onclick="generateAIMemo()">✨ Generate AI</button>
+                <button class="key-btn" onclick="resetKey()">🔑 Reset Key</button>
+            </div>
+        </div>
+
+        <div class="memo-container">
+            <!-- Scenario Info -->
+            <div class="context-box">
+                <strong id="scenarioTitle">Scenario 1</strong><br>
+                <span id="scenarioHeaderInfo">To: Project Engineer | From: Procurement Manager</span>
+            </div>
+
+            <!-- Green Paper Area -->
+            <div class="memo-paper">
+
+                <div class="section-title">Summary</div>
+                <div class="summary-text" id="scenarioSummary">
+                    <!-- Summary text injected here -->
+                </div>
+
+                <!-- Question 1 -->
+                <div class="question-block">
+                    <span class="sentence-start" id="q1Start">1) We regret to inform you that ...</span>
+                    <div class="slots-row" id="slots-row-0">
+                        <div class="slot" onclick="clearSlot(0, 0)" id="slot-0-0"></div>
+                        <div class="separator">/</div>
+                        <div class="slot" onclick="clearSlot(0, 1)" id="slot-0-1"></div>
+                        <div class="separator">/</div>
+                        <div class="slot" onclick="clearSlot(0, 2)" id="slot-0-2"></div>
+                        <div class="separator">/</div>
+                        <div class="slot" onclick="clearSlot(0, 3)" id="slot-0-3"></div>
+                    </div>
+                    <div class="options-pool" id="options-0"></div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="question-block">
+                    <span class="sentence-start" id="q2Start">2) Consequently, ...</span>
+                    <div class="slots-row" id="slots-row-1">
+                        <div class="slot" onclick="clearSlot(1, 0)" id="slot-1-0"></div>
+                        <div class="separator">/</div>
+                        <div class="slot" onclick="clearSlot(1, 1)" id="slot-1-1"></div>
+                        <div class="separator">/</div>
+                        <div class="slot" onclick="clearSlot(1, 2)" id="slot-1-2"></div>
+                        <div class="separator">/</div>
+                        <div class="slot" onclick="clearSlot(1, 3)" id="slot-1-3"></div>
+                    </div>
+                    <div class="options-pool" id="options-1"></div>
+                </div>
+
+                <div class="section-title">Background</div>
+                <div class="background-section">
+                    <span id="scenarioBackground">We placed an order...</span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="timer">⏱️ <span id="timer">20:00</span></div>
+            <div>
+                <button class="check-btn" onclick="checkAnswer()">Check Answer</button>
+                <button class="next-btn" onclick="prevScenario()">Previous Scenario</button>
+                <button class="next-btn" onclick="nextScenario()">Next Scenario</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div class="overlay" id="overlay"></div>
+    <div class="modal" id="modal">
+        <h2 id="modalTitle" style="margin-top:0;">Result</h2>
+        <div id="modalContent"></div>
+        <div class="correct-answer-box" id="correctAnswerDisplay"></div>
+        <div style="text-align:right; margin-top:15px;">
+            <button class="ai-btn" style="display:inline-flex;" onclick="explainWithAI()">✨ Explain Why</button>
+            <button class="next-btn" onclick="closeModal()">Close</button>
+        </div>
+        <div id="aiExplanation"
+            style="margin-top:10px; font-size:13px; color:#555; background:#f9f9f9; padding:10px; border-radius:4px; display:none;">
+        </div>
+    </div>
+
+    <script>
+        // --- Data: 20 Extended Scenarios with 2 Questions Each ---
+        const scenarios = [
+            {
+                title: "Scenario 1: Material Shortage",
+                headerInfo: "To: Project Engineer | From: Procurement Manager",
+                summary: "We have completed the inventory check for the upcoming installation phase of the 'Skyline Tower'. While most components are ready, we have identified a significant issue with the electrical supplies.",
+                questions: [
+                    {
+                        start: "1) We regret to inform you that ...",
+                        correct: ["we have encountered", "a critical shortage", "of copper wire", "in the market"]
+                    },
+                    {
+                        start: "2) Consequently, the installation phase ...",
+                        correct: ["will be", "postponed", "until new stock", "arrives next week"]
+                    }
+                ],
+                background: "The primary supplier, MetalCorp, recently issued a notice regarding global supply chain disruptions affecting raw copper exports. We are currently negotiating with alternative vendors to expedite a new shipment."
+            },
+            {
+                title: "Scenario 2: Weather Disruption",
+                headerInfo: "To: Head Office | From: Site Supervisor",
+                summary: "This memorandum serves to update the management on the status of the 'Riverview' construction site. Due to the sudden change in meteorological conditions, we have had to make immediate operational adjustments.",
+                questions: [
+                    {
+                        start: "1) Due to the severe thunderstorm, ...",
+                        correct: ["all outdoor activities", "at the construction site", "have been", "suspended"]
+                    },
+                    {
+                        start: "2) We prioritize safety, therefore ...",
+                        correct: ["operations", "will not resume", "until weather", "conditions improve"]
+                    }
+                ],
+                background: "At 09:00 AM, wind speeds exceeded 45 km/h, which is above the safety threshold for crane operation. The heavy rainfall also poses a slip hazard on the scaffolding structures."
+            },
+            {
+                title: "Scenario 3: Design Modification",
+                headerInfo: "To: Structural Engineer | From: Senior Architect",
+                summary: "Following the client meeting on February 10th regarding the office complex interior, there has been a request to alter the ground floor layout. This will require a review of the load-bearing elements.",
+                questions: [
+                    {
+                        start: "1) We are currently modifying ...",
+                        correct: ["the structural design", "to accommodate", "the client's request", "for an open lobby"]
+                    },
+                    {
+                        start: "2) Because of these revisions, ...",
+                        correct: ["it is necessary", "to extend", "the final handover date", "by two weeks"]
+                    }
+                ],
+                background: "The client requested the removal of two non-essential columns to create a more spacious reception area. We need to reinforce the transfer beams before proceeding with the fit-out."
+            },
+            {
+                title: "Scenario 4: Ahead of Schedule",
+                headerInfo: "To: Client Director | From: Project Manager",
+                summary: "We are pleased to provide the monthly progress report for the 'Eco-Park' facility. The efficiency of the new pre-cast installation method has yielded excellent results this quarter.",
+                questions: [
+                    {
+                        start: "1) We are pleased to report that ...",
+                        correct: ["Phase 1 construction", "is currently", "proceeding", "ahead of schedule"]
+                    },
+                    {
+                        start: "2) The construction team ...",
+                        correct: ["is ready", "to begin", "the next stage", "immediately"]
+                    }
+                ],
+                background: "Favorable weather and the early delivery of materials allowed us to complete the foundation work 10 days earlier than planned. We are now mobilizing for the steel framework erection."
+            },
+            {
+                title: "Scenario 5: Manpower Shortage",
+                headerInfo: "To: Production Manager | From: HR Department",
+                summary: "This memo outlines the current staffing levels at Factory B. We are facing a temporary reduction in available operators due to health-related absences reported this morning.",
+                questions: [
+                    {
+                        start: "1) Currently, our workforce ...",
+                        correct: ["is operating", "at reduced capacity", "due to", "a sudden flu outbreak"]
+                    },
+                    {
+                        start: "2) This labor shortage ...",
+                        correct: ["might", "impact", "the overall", "productivity rate"]
+                    }
+                ],
+                background: "Five key operators on Assembly Line 3 have reported sick with flu symptoms. We are arranging for temporary staff from the agency, but they will not arrive until tomorrow."
+            },
+            {
+                title: "Scenario 6: Server Maintenance",
+                headerInfo: "To: All Staff | From: IT Department",
+                summary: "To ensure the continued security and performance of our corporate network, the IT department has scheduled necessary infrastructure work. We aim to minimize disruption to your daily tasks.",
+                questions: [
+                    {
+                        start: "1) Please be advised that ...",
+                        correct: ["routine maintenance", "on the main server", "will be performed", "this weekend"]
+                    },
+                    {
+                        start: "2) To prevent data loss, ...",
+                        correct: ["all users", "are advised", "to save", "their work"]
+                    }
+                ],
+                background: "A critical security patch needs to be applied to the database server to protect against recent ransomware threats. The system will be offline from Saturday 22:00 to Sunday 06:00."
+            },
+            {
+                title: "Scenario 7: Photocopier Breakdown",
+                headerInfo: "To: Marketing Team | From: Office Administration",
+                summary: "We have received reports regarding the malfunction of the Xerox machine on the 4th floor. We understand this is a busy period for printing brochures, and we apologize for the inconvenience.",
+                questions: [
+                    {
+                        start: "1) The central photocopier ...",
+                        correct: ["is", "out of order", "until", "the technician arrives"]
+                    },
+                    {
+                        start: "2) In the meantime, ...",
+                        correct: ["please use", "the printer", "located in the", "finance department"]
+                    }
+                ],
+                background: "The machine displays Error Code E-04 (Fuser Unit Failure). A service request has been logged, and the repair technician is scheduled to visit tomorrow morning."
+            },
+            {
+                title: "Scenario 8: Elevator Maintenance",
+                headerInfo: "To: All Tenants | From: Building Management",
+                summary: "As part of our commitment to safety compliance, all vertical transport systems in the building must undergo annual certification. This involves load testing and emergency brake checks.",
+                questions: [
+                    {
+                        start: "1) Passenger Elevator B ...",
+                        correct: ["will be", "closed", "for annual inspection", "on Friday morning"]
+                    },
+                    {
+                        start: "2) During this period, ...",
+                        correct: ["staff", "are encouraged", "to use", "the service elevator"]
+                    }
+                ],
+                background: "The inspection is mandated by the City Building Code. Elevator A and the Service Elevator will remain fully operational to ensure continued access to all floors."
+            },
+            {
+                title: "Scenario 9: Air Conditioning Failure",
+                headerInfo: "To: Meeting Room Users | From: Facilities Team",
+                summary: "We are aware of the temperature issues in the East Wing conference area. Our Building Management System (BMS) alerted us to a fault in the HVAC unit at 10:00 AM.",
+                questions: [
+                    {
+                        start: "1) We have detected that ...",
+                        correct: ["the cooling system", "in Meeting Room A", "is not functioning", "properly"]
+                    },
+                    {
+                        start: "2) Our maintenance team ...",
+                        correct: ["is currently", "working", "to resolve", "the issue"]
+                    }
+                ],
+                background: "The compressor unit on the roof has tripped due to an electrical surge. Portable fans have been placed in the room temporarily while we reset the breaker."
+            },
+            {
+                title: "Scenario 10: Parking Lot Closure",
+                headerInfo: "To: All Employees | From: Safety Officer",
+                summary: "Following the monthly safety audit of the facility grounds, we have identified surface damage in the North Parking Zone that requires immediate attention to prevent vehicular damage.",
+                questions: [
+                    {
+                        start: "1) The North Parking Lot ...",
+                        correct: ["is", "unavailable", "due to", "repaving work"]
+                    },
+                    {
+                        start: "2) We recommend that ...",
+                        correct: ["employees", "utilize", "public transport", "during this time"]
+                    }
+                ],
+                background: "Severe potholes have formed near the entrance gate due to heavy rain erosion. The contractor will be resurfacing the asphalt from Monday to Wednesday next week."
+            },
+            {
+                title: "Scenario 11: Safety Inspection Failure",
+                headerInfo: "To: Factory Manager | From: Safety Inspector",
+                summary: "During this morning's routine safety audit of the production floor, a critical violation was found on the heavy machinery line. This poses a significant risk to operators.",
+                questions: [
+                    {
+                        start: "1) The hydraulic press ...",
+                        correct: ["must remain", "non-operational", "until repairs", "are completed"]
+                    },
+                    {
+                        start: "2) This safety measure ...",
+                        correct: ["is necessary", "to comply with", "national safety", "regulations"]
+                    }
+                ],
+                background: "The emergency stop button on the press failed to engage during the test. Parts have been ordered, and the machine has been tagged out to prevent accidental use."
+            },
+            {
+                title: "Scenario 12: Budget Cut Notification",
+                headerInfo: "To: Department Heads | From: Finance Director",
+                summary: "Due to the recent economic downturn and rising inflation, the company is implementing a cost-saving strategy for the remainder of the fiscal year.",
+                questions: [
+                    {
+                        start: "1) We are required ...",
+                        correct: ["to reduce", "travel expenses", "by 20%", "this quarter"]
+                    },
+                    {
+                        start: "2) Please review ...",
+                        correct: ["your department budget", "and submit", "a revised plan", "by Friday"]
+                    }
+                ],
+                background: "The reduction focuses on non-essential expenditures. Online meetings should be prioritized over physical travel to reduce flight and accommodation costs."
+            },
+            {
+                title: "Scenario 13: Emergency Fire Drill",
+                headerInfo: "To: All Employees | From: Safety Committee",
+                summary: "Preparedness is key to safety. As per the National Fire Safety Act, we are conducting our bi-annual evacuation exercise to ensure everyone knows the escape routes.",
+                questions: [
+                    {
+                        start: "1) All employees ...",
+                        correct: ["are required", "to participate", "in the fire drill", "on Thursday"]
+                    },
+                    {
+                        start: "2) When the alarm sounds, ...",
+                        correct: ["please proceed", "calmly", "to the nearest", "assembly point"]
+                    }
+                ],
+                background: "The drill will simulate a fire in the server room. Do not use the elevators. Fire wardens will guide you to the assembly point in the main car park."
+            },
+            {
+                title: "Scenario 14: Software License Expiry",
+                headerInfo: "To: Design Engineers | From: IT Support",
+                summary: "This is an automated reminder regarding the AutoCAD software suite installed on your workstations. Our records indicate the current subscription period is ending.",
+                questions: [
+                    {
+                        start: "1) The license ...",
+                        correct: ["for the design software", "is due", "to expire", "on October 31st"]
+                    },
+                    {
+                        start: "2) Please ensure that ...",
+                        correct: ["you have", "saved all", "your project files", "before this date"]
+                    }
+                ],
+                background: "IT will be deploying the new license keys remotely over the weekend. If you experience access issues on Monday, please contact the Help Desk immediately."
+            },
+            {
+                title: "Scenario 15: Meeting Rescheduling",
+                headerInfo: "To: Project Stakeholders | From: Project Secretary",
+                summary: "Regarding the weekly progress meeting scheduled for next Monday, we have received an update from the client regarding their travel itinerary.",
+                questions: [
+                    {
+                        start: "1) The weekly progress meeting ...",
+                        correct: ["has been", "postponed", "to Tuesday afternoon", "due to client unavailability"]
+                    },
+                    {
+                        start: "2) We apologize for ...",
+                        correct: ["any inconvenience", "this change", "may cause", "to your schedule"]
+                    }
+                ],
+                background: "The client's flight from Singapore has been delayed. The meeting is now set for Tuesday at 14:00 PM in Conference Room B."
+            },
+            {
+                title: "Scenario 16: Factory Power Outage",
+                headerInfo: "To: Production Supervisors | From: Plant Manager",
+                summary: "The Provincial Electricity Authority (PEA) has notified us of scheduled grid maintenance in our industrial estate. This will result in a temporary loss of mains power.",
+                questions: [
+                    {
+                        start: "1) A scheduled power outage ...",
+                        correct: ["will affect", "production Sector B", "on Sunday", "from 8 AM to 12 PM"]
+                    },
+                    {
+                        start: "2) The backup generator ...",
+                        correct: ["will provide", "power only", "for emergency lighting", "and security systems"]
+                    }
+                ],
+                background: "All heavy machinery must be powered down safely before 07:30 AM on Sunday to prevent damage from voltage spikes when power is restored."
+            },
+            {
+                title: "Scenario 17: New Security Protocol",
+                headerInfo: "To: All Staff | From: Chief of Security",
+                summary: "In light of recent unauthorized entries at similar facilities nearby, we are upgrading our site access control measures to ensure the safety of our personnel and assets.",
+                questions: [
+                    {
+                        start: "1) Employees must ...",
+                        correct: ["wear", "their security badges", "at all times", "while on site"]
+                    },
+                    {
+                        start: "2) Security guards ...",
+                        correct: ["will check", "identification", "at the", "main gate entrance"]
+                    }
+                ],
+                background: "Visitors are no longer allowed to enter without a pre-approved appointment code. Staff found without visible badges will be stopped and questioned."
+            },
+            {
+                title: "Scenario 18: Warehouse Inventory Audit",
+                headerInfo: "To: Logistics Team | From: Warehouse Manager",
+                summary: "It is the end of the fiscal year, and we are required to reconcile our physical stock with the digital records in the SAP system.",
+                questions: [
+                    {
+                        start: "1) The warehouse ...",
+                        correct: ["will be closed", "for the annual", "inventory audit", "tomorrow"]
+                    },
+                    {
+                        start: "2) No shipments ...",
+                        correct: ["will be", "processed", "during", "this audit period"]
+                    }
+                ],
+                background: "Please ensure all pending delivery notes are filed by 17:00 today. The audit team will begin counting at 08:00 AM sharp tomorrow."
+            },
+            {
+                title: "Scenario 19: Training Workshop",
+                headerInfo: "To: Technicians | From: Technical Trainer",
+                summary: "We have recently installed new 5-axis CNC machines in the fabrication workshop. To ensure safe and efficient operation, specialized training is required.",
+                questions: [
+                    {
+                        start: "1) Attendance is mandatory ...",
+                        correct: ["for the", "safety training session", "for all technicians", "on Wednesday"]
+                    },
+                    {
+                        start: "2) This workshop ...",
+                        correct: ["will cover", "operational procedures", "and", "emergency protocols"]
+                    }
+                ],
+                background: "The session will be led by a certified instructor from the machine manufacturer. Certificates will be issued upon completion."
+            },
+            {
+                title: "Scenario 20: Canteen Renovation",
+                headerInfo: "To: All Staff | From: HR Department",
+                summary: "We are continually improving our facilities for staff comfort. We have noticed that the floor tiles in the main canteen are cracked and require replacement.",
+                questions: [
+                    {
+                        start: "1) The main canteen ...",
+                        correct: ["will close", "for renovations", "starting", "next Monday"]
+                    },
+                    {
+                        start: "2) Food trucks ...",
+                        correct: ["will be provided", "in the car park", "as an alternative", "dining option"]
+                    }
+                ],
+                background: "The renovation is expected to take 5 working days. Microwave ovens will be moved to the break rooms on each floor for your convenience."
+            },
+            {
+                title: "Scenario 21: Solar Panel Installation",
+                headerInfo: "To: Robert Downey, Project Director | From: Your Name, Project Coordinator",
+                summary: "Severe weather conditions this week have interrupted the installation process and this puts the project completion date 4 days behind schedule.",
+                questions: [
+                    {
+                        start: "1) Background: ...",
+                        correct: ["the installation of", "solar panels", "was scheduled", "to begin on July 15"]
+                    },
+                    {
+                        start: "2) Problems encountered: ...",
+                        correct: ["heavy rainfall", "delayed", "the roof preparation", "for three days"]
+                    }
+                ],
+                background: "You had a contract to install solar panels on the roof of a commercial building, but heavy rain has caused significant delays."
+            }
+        ];
+
+        // --- State Variables ---
+        let currentIndex = 0;
+        // Store slots for Q1 (row 0) and Q2 (row 1)
+        let userSlots = [[null, null, null, null], [null, null, null, null]];
+        let timeLeft = 20 * 60; // 20 minutes
+
+        // --- Core Functions ---
+
+        function init() {
+            loadScenario(0);
+            startTimer();
+        }
+
+        function loadScenario(index) {
+            currentIndex = index;
+            const s = scenarios[index];
+
+            // Update Header Info
+            document.getElementById('counterBadge').textContent = `${index + 1} / ${scenarios.length}`;
+            document.getElementById('scenarioTitle').textContent = s.title;
+            document.getElementById('scenarioHeaderInfo').textContent = s.headerInfo;
+            document.getElementById('scenarioSummary').textContent = s.summary;
+            document.getElementById('scenarioBackground').textContent = s.background;
+
+            // Reset User Answers
+            userSlots = [[null, null, null, null], [null, null, null, null]];
+
+            // Setup Q1
+            document.getElementById('q1Start').textContent = s.questions[0].start;
+            setupQuestionPool(0, s.questions[0].correct);
+
+            // Setup Q2
+            document.getElementById('q2Start').textContent = s.questions[1].start;
+            setupQuestionPool(1, s.questions[1].correct);
+
+            // Reset UI Slots
+            document.querySelectorAll('.slot').forEach(el => {
+                el.textContent = "";
+                el.className = "slot";
+            });
+
+            // Hide AI Explanation
+            document.getElementById('aiExplanation').style.display = 'none';
+            document.getElementById('aiExplanation').innerHTML = '';
+        }
+
+        function setupQuestionPool(qIndex, phrases) {
+            const pool = document.getElementById(`options-${qIndex}`);
+            pool.innerHTML = '';
+
+            // Create array {text, id}
+            let options = phrases.map((text, idx) => ({ text, id: idx, qIndex }));
+
+            // Shuffle
+            options.sort(() => Math.random() - 0.5);
+
+            options.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = 'option-chip';
+                btn.textContent = opt.text;
+                btn.id = `opt-${qIndex}-${opt.id}`;
+                btn.onclick = () => fillSlot(qIndex, opt);
+                pool.appendChild(btn);
+            });
+        }
+
+        function fillSlot(qIndex, option) {
+            // Find first empty slot in the specific question row
+            const emptyIndex = userSlots[qIndex].indexOf(null);
+            if (emptyIndex === -1) return; // Row full
+
+            // Check if already used
+            if (userSlots[qIndex].some(s => s && s.id === option.id)) return;
+
+            // Update Logic
+            userSlots[qIndex][emptyIndex] = option;
+
+            // Update UI
+            document.getElementById(`opt-${qIndex}-${option.id}`).classList.add('used');
+            updateSlotUI(qIndex, emptyIndex);
+        }
+
+        function clearSlot(qIndex, slotIndex) {
+            const item = userSlots[qIndex][slotIndex];
+            if (!item) return;
+
+            // Return to pool
+            document.getElementById(`opt-${qIndex}-${item.id}`).classList.remove('used');
+
+            // Remove
+            userSlots[qIndex][slotIndex] = null;
+            updateSlotUI(qIndex, slotIndex);
+        }
+
+        function updateSlotUI(qIndex, slotIndex) {
+            const el = document.getElementById(`slot-${qIndex}-${slotIndex}`);
+            const item = userSlots[qIndex][slotIndex];
+
+            el.textContent = item ? item.text : "";
+            el.className = 'slot' + (item ? ' filled' : '');
+        }
+
+        function checkAnswer() {
+            const s = scenarios[currentIndex];
+            let correctCount = 0;
+            let totalSlots = 8; // 2 questions * 4 slots
+
+            // Flatten checks
+            let isFull = true;
+            userSlots.forEach(row => { if (row.includes(null)) isFull = false; });
+
+            if (!isFull) {
+                alert("Please fill all blank spaces in both questions first.");
+                return;
+            }
+
+            let feedbackHTML = "";
+
+            // Check Q1
+            let q1Correct = true;
+            for (let i = 0; i < 4; i++) {
+                if (userSlots[0][i].text !== s.questions[0].correct[i]) q1Correct = false;
+            }
+
+            // Check Q2
+            let q2Correct = true;
+            for (let i = 0; i < 4; i++) {
+                if (userSlots[1][i].text !== s.questions[1].correct[i]) q2Correct = false;
+            }
+
+            // Apply styles
+            for (let i = 0; i < 4; i++) {
+                const el1 = document.getElementById(`slot-0-${i}`);
+                el1.classList.remove('filled');
+                el1.classList.add(userSlots[0][i].text === s.questions[0].correct[i] ? 'correct' : 'incorrect');
+
+                const el2 = document.getElementById(`slot-1-${i}`);
+                el2.classList.remove('filled');
+                el2.classList.add(userSlots[1][i].text === s.questions[1].correct[i] ? 'correct' : 'incorrect');
+            }
+
+            // Show Modal
+            const modal = document.getElementById('modal');
+            const overlay = document.getElementById('overlay');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('modalContent');
+            const answerBox = document.getElementById('correctAnswerDisplay');
+
+            if (q1Correct && q2Correct) {
+                title.textContent = "✅ Excellent!";
+                title.style.color = "green";
+                content.innerHTML = "Both sentences are grammatically correct.";
+            } else {
+                title.textContent = "⚠️ Review Needed";
+                title.style.color = "#e65100";
+                content.innerHTML = "Some parts are in the wrong order. Check the Subject-Verb-Object flow.";
+            }
+
+            answerBox.innerHTML = `
+            <b>Question 1 Correct Order:</b><br>${s.questions[0].correct.join(" / ")}<br><br>
+            <b>Question 2 Correct Order:</b><br>${s.questions[1].correct.join(" / ")}
+        `;
+
+            modal.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        function prevScenario() {
+            let prev = currentIndex - 1;
+            if (prev < 0) prev = scenarios.length - 1;
+            loadScenario(prev);
+            closeModal();
+        }
+
+        function nextScenario() {
+            let next = currentIndex + 1;
+            if (next >= scenarios.length) next = 0;
+            loadScenario(next);
+            closeModal();
+        }
+
+        function startTimer() {
+            setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    const m = Math.floor(timeLeft / 60);
+                    const s = timeLeft % 60;
+                    document.getElementById('timer').textContent = `${m}:${s < 10 ? '0' + s : s}`;
+                }
+            }, 1000);
+        }
+
+        // --- AI Integration ---
+
+        function getKey() {
+            let key = localStorage.getItem("gemini_api_key");
+            if (!key) {
+                key = prompt("Please enter your Gemini API Key:");
+                if (key) localStorage.setItem("gemini_api_key", key);
+            }
+            return key;
+        }
+
+        function resetKey() {
+            localStorage.removeItem("gemini_api_key");
+            alert("API Key cleared.");
+        }
+
+        async function generateAIMemo() {
+            const key = getKey();
+            if (!key) return;
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+
+            // Prompt for 2-question format
+            const prompt = `
+            Generate a JSON object for an engineering memorandum sentence rearrangement task.
+            Strictly follow this structure:
+            {
+                "title": "Scenario Name (e.g. Chemical Spill)",
+                "headerInfo": "To: ... | From: ...",
+                "summary": "3-4 sentences describing the situation in detail.",
+                "background": "2 sentences of additional context.",
+                "questions": [
+                    {
+                        "start": "1) Sentence starter ...",
+                        "correct": ["phrase 1", "phrase 2", "phrase 3", "phrase 4"]
+                    },
+                    {
+                        "start": "2) Sentence starter ...",
+                        "correct": ["phrase 1", "phrase 2", "phrase 3", "phrase 4"]
+                    }
+                ]
+            }
+            Ensure the sentences are grammatically correct when phrases are combined.
+            Do not use markdown. Return ONLY JSON.
+        `;
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const data = await res.json();
+
+                // Token Logging
+                if (data.usageMetadata) {
+                    console.group("Gemini API Token Usage");
+                    console.log(`Input: ${data.usageMetadata.promptTokenCount}`);
+                    console.log(`Output: ${data.usageMetadata.candidatesTokenCount}`);
+                    console.log(`Total: ${data.usageMetadata.totalTokenCount}`);
+                    console.groupEnd();
+                }
+
+                let text = data.candidates[0].content.parts[0].text;
+                text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const startBrace = text.indexOf('{');
+                const endBrace = text.lastIndexOf('}');
+                if (startBrace !== -1 && endBrace !== -1) {
+                    text = text.substring(startBrace, endBrace + 1);
+                }
+
+                const newScenario = JSON.parse(text);
+                scenarios.push(newScenario);
+                loadScenario(scenarios.length - 1);
+
+            } catch (e) {
+                console.error(e);
+                alert("AI Error: Check console/key");
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+
+        async function explainWithAI() {
+            const key = getKey();
+            if (!key) return;
+
+            const btn = document.querySelector('.modal .ai-btn');
+            const originalText = btn.innerHTML;
+            btn.textContent = "Thinking...";
+
+            const s = scenarios[currentIndex];
+            const sent1 = `${s.questions[0].start} ${s.questions[0].correct.join(" ")}.`;
+            const sent2 = `${s.questions[1].start} ${s.questions[1].correct.join(" ")}.`;
+
+            const prompt = `
+            Explain the grammar structure of these two sentences in Thai:
+            1. "${sent1}"
+            2. "${sent2}"
+            Explain why the word order is correct for each. Keep it concise.
+        `;
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await res.json();
+                const explanation = data.candidates[0].content.parts[0].text;
+
+                const expDiv = document.getElementById('aiExplanation');
+                expDiv.style.display = 'block';
+                expDiv.innerHTML = `<b>AI Explanation:</b><br>${explanation.replace(/\n/g, '<br>')}`;
+
+            } catch (e) {
+                alert("AI Error");
+            } finally {
+                btn.innerHTML = originalText;
+            }
+        }
+
+        // Start
+        init();
+
+    </script>
+
+</body>
+
+</html>
